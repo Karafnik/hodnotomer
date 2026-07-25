@@ -928,7 +928,7 @@ function CompanyWizard({ initialData, onComplete }) {
               icon={<Contact size={14} />}
               numericOnly
               maxLength={8}
-              helper="Ak firma sídli na Slovensku, podľa IČO appka skúsi automaticky dohľadať reálne účtovné údaje z verejného registra."
+              helper="Ak firma sídli na Slovensku, appka sa pokúsi podľa IČO automaticky dohľadať reálne účtovné údaje z verejného registra."
             />
             <SelectInput label="Typ spoločnosti" value={data.companyType} onChange={upd("companyType")} options={COMPANY_TYPE_OPTIONS} />
             {touched && !isStepValid() && <ErrorHint text="Vyplňte prosím názov aj typ spoločnosti." />}
