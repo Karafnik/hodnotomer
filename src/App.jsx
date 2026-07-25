@@ -123,6 +123,20 @@ const COMPANY_TYPE_OPTIONS = [
   { value: "other", label: "Iný typ" },
 ];
 
+// Automatické odvodenie typu spoločnosti z jej presného (oficiálneho) názvu —
+// nahrádza ručný výber, keďže názov z IČO lookupu už typ jednoznačne obsahuje.
+function inferCompanyTypeFromName(name) {
+  const n = (name || "").toLowerCase();
+  if (/\bs\.?\s*r\.?\s*o\.?\b/.test(n)) return "sro";
+  if (/\ba\.?\s*s\.?\b/.test(n)) return "as";
+  if (/\bk\.?\s*s\.?\b/.test(n)) return "ks";
+  if (/\bv\.?\s*o\.?\s*s\.?\b/.test(n)) return "vos";
+  if (n.includes("družstvo")) return "druzstvo";
+  if (n.includes("nezisková") || n.includes("n.o.") || n.includes("o.z.")) return "nezisková";
+  if (n.includes("živnost")) return "szco";
+  return "other";
+}
+
 const STRUCTURE_OPTIONS = [
   { value: "hq", label: "Materská spoločnosť / sídlo (HQ)" },
   { value: "subsidiary", label: "Pobočka / dcérska spoločnosť (Subsidiary)" },
@@ -814,7 +828,7 @@ function CompanyWizard({ initialData, onComplete }) {
 
   // Nášepkávanie IČO podľa mena firmy (len SR, ORSF) — debounced fulltext hľadanie
   const updCompanyName = (v) => {
-    setData((s) => ({ ...s, companyName: v }));
+    setData((s) => ({ ...s, companyName: v, companyType: inferCompanyTypeFromName(v) }));
     setIcoLookup(null);
     if (nameSearchTimer.current) clearTimeout(nameSearchTimer.current);
     if (data.country !== "Slovensko" || v.trim().length < 3) {
@@ -830,7 +844,7 @@ function CompanyWizard({ initialData, onComplete }) {
   };
 
   const pickSuggestion = (s) => {
-    setData((d) => ({ ...d, companyName: s.name, ico: s.ico }));
+    setData((d) => ({ ...d, companyName: s.name, ico: s.ico, companyType: inferCompanyTypeFromName(s.name) }));
     setShowNameSuggestions(false);
     setNameSuggestions([]);
     setIcoLookup(null);
@@ -854,7 +868,7 @@ function CompanyWizard({ initialData, onComplete }) {
   }, [data.ico, data.country]);
 
   const useIcoLookupName = () => {
-    if (icoLookup) setData((d) => ({ ...d, companyName: icoLookup.name }));
+    if (icoLookup) setData((d) => ({ ...d, companyName: icoLookup.name, companyType: inferCompanyTypeFromName(icoLookup.name) }));
     setIcoLookup(null);
   };
 
@@ -866,7 +880,7 @@ function CompanyWizard({ initialData, onComplete }) {
 
   const isStepValid = () => {
     if (step === 0) return data.country.trim() && data.region.trim();
-    if (step === 1) return data.companyName.trim() && data.companyType;
+    if (step === 1) return data.companyName.trim();
     if (step === 2) return !!data.structureType;
     if (step === 3) return true;
     return true;
@@ -1069,8 +1083,7 @@ function CompanyWizard({ initialData, onComplete }) {
                 </button>
               </div>
             )}
-            <SelectInput label="Typ spoločnosti" value={data.companyType} onChange={upd("companyType")} options={COMPANY_TYPE_OPTIONS} />
-            {touched && !isStepValid() && <ErrorHint text="Vyplňte prosím názov aj typ spoločnosti." />}
+            {touched && !isStepValid() && <ErrorHint text="Vyplňte prosím názov spoločnosti." />}
           </>
         )}
 
