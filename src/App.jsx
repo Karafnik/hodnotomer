@@ -960,7 +960,7 @@ function CompanyWizard({ initialData, onComplete }) {
         {step === 3 && (
           <>
             <h2 style={{ fontFamily: "'Fraunces', serif", fontWeight: 600, fontSize: 22, color: COLORS.ink, margin: "0 0 20px" }}>
-              Kto údaje vypĺňa?
+              Kontaktné údaje
             </h2>
             <NumberInputText label="Meno a priezvisko (voliteľné)" value={data.contactName} onChange={upd("contactName")} icon={<User size={14} />} />
             <NumberInputText label="E-mail (voliteľné)" value={data.contactEmail} onChange={upd("contactEmail")} icon={<Mail size={14} />} />
