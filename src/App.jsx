@@ -805,8 +805,58 @@ function CompanyWizard({ initialData, onComplete }) {
     }
   );
   const [touched, setTouched] = useState(false);
+  const [nameSuggestions, setNameSuggestions] = useState([]);
+  const [showNameSuggestions, setShowNameSuggestions] = useState(false);
+  const [icoLookup, setIcoLookup] = useState(null); // { name, ico } | null
+  const nameSearchTimer = useRef(null);
 
   const upd = (k) => (v) => setData((s) => ({ ...s, [k]: v }));
+
+  // Nášepkávanie IČO podľa mena firmy (len SR, ORSF) — debounced fulltext hľadanie
+  const updCompanyName = (v) => {
+    setData((s) => ({ ...s, companyName: v }));
+    setIcoLookup(null);
+    if (nameSearchTimer.current) clearTimeout(nameSearchTimer.current);
+    if (data.country !== "Slovensko" || v.trim().length < 3) {
+      setNameSuggestions([]);
+      setShowNameSuggestions(false);
+      return;
+    }
+    nameSearchTimer.current = setTimeout(async () => {
+      const results = await fetchOrsfSearch(v.trim());
+      setNameSuggestions(results);
+      setShowNameSuggestions(results.length > 0);
+    }, 400);
+  };
+
+  const pickSuggestion = (s) => {
+    setData((d) => ({ ...d, companyName: s.name, ico: s.ico }));
+    setShowNameSuggestions(false);
+    setNameSuggestions([]);
+    setIcoLookup(null);
+  };
+
+  // Nášepkávanie mena firmy podľa IČO (len SR, ORSF) — akonáhle je vyplnených 8 číslic
+  useEffect(() => {
+    if (data.country !== "Slovensko" || !/^\d{8}$/.test(data.ico || "")) {
+      setIcoLookup(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const found = await fetchOrsfCompanyByIco(data.ico);
+      if (!cancelled && found) setIcoLookup(found);
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data.ico, data.country]);
+
+  const useIcoLookupName = () => {
+    if (icoLookup) setData((d) => ({ ...d, companyName: icoLookup.name }));
+    setIcoLookup(null);
+  };
 
   // pri zmene krajiny sa región automaticky prepne na prvý z jej zoznamu
   // (zoznamy sa medzi krajinami líšia, starý výber by nemusel dávať zmysel)
@@ -918,18 +968,107 @@ function CompanyWizard({ initialData, onComplete }) {
         {step === 1 && (
           <>
             <h2 style={{ fontFamily: "'Fraunces', serif", fontWeight: 600, fontSize: 22, color: COLORS.ink, margin: "0 0 20px" }}>
-              Názov firmy
+              Ako sa firma volá?
             </h2>
-            <NumberInputText label="Celý názov spoločnosti" value={data.companyName} onChange={upd("companyName")} icon={<Building2 size={14} />} />
+            <div style={{ position: "relative" }}>
+              <NumberInputText
+                label="Celý názov spoločnosti"
+                value={data.companyName}
+                onChange={updCompanyName}
+                icon={<Building2 size={14} />}
+              />
+              {showNameSuggestions && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "100%",
+                    left: 0,
+                    right: 0,
+                    marginTop: -10,
+                    marginBottom: 12,
+                    background: "#fff",
+                    border: `1px solid ${COLORS.line}`,
+                    borderRadius: 10,
+                    boxShadow: "0 12px 24px -8px rgba(24,36,73,0.18)",
+                    zIndex: 20,
+                    overflow: "hidden",
+                  }}
+                >
+                  {nameSuggestions.map((s) => (
+                    <button
+                      key={s.ico}
+                      onClick={() => pickSuggestion(s)}
+                      style={{
+                        display: "block",
+                        width: "100%",
+                        textAlign: "left",
+                        padding: "9px 12px",
+                        border: "none",
+                        borderBottom: `1px solid ${COLORS.line}`,
+                        background: "#fff",
+                        cursor: "pointer",
+                        fontSize: 13,
+                        color: COLORS.ink,
+                      }}
+                    >
+                      {s.name}{" "}
+                      <span style={{ color: COLORS.inkSoft, fontFamily: "'IBM Plex Mono', monospace", fontSize: 11.5 }}>
+                        IČO {s.ico}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             <NumberInputText
               label="IČO"
               value={data.ico}
-              onChange={upd("ico")}
+              onChange={(v) => {
+                upd("ico")(v);
+                setShowNameSuggestions(false);
+              }}
               icon={<Contact size={14} />}
               numericOnly
               maxLength={8}
-              helper="Ak firma sídli na Slovensku, appka sa pokúsi podľa IČO automaticky dohľadať reálne účtovné údaje z verejného registra."
+              helper="Ak firma sídli na Slovensku, podľa IČO appka skúsi automaticky dohľadať reálne účtovné údaje z verejného registra."
             />
+            {icoLookup && icoLookup.name !== data.companyName && (
+              <div
+                style={{
+                  fontSize: 12.5,
+                  background: COLORS.paperDeep,
+                  border: `1px solid ${COLORS.line}`,
+                  borderRadius: 10,
+                  padding: "8px 10px",
+                  marginTop: -8,
+                  marginBottom: 16,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 8,
+                }}
+              >
+                <span>
+                  Podľa tohto IČO sme našli: <strong>{icoLookup.name}</strong>
+                </span>
+                <button
+                  onClick={useIcoLookupName}
+                  style={{
+                    background: COLORS.ink,
+                    color: COLORS.paper,
+                    border: "none",
+                    borderRadius: 999,
+                    padding: "5px 12px",
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    flexShrink: 0,
+                  }}
+                >
+                  Použiť
+                </button>
+              </div>
+            )}
             <SelectInput label="Typ spoločnosti" value={data.companyType} onChange={upd("companyType")} options={COMPANY_TYPE_OPTIONS} />
             {touched && !isStepValid() && <ErrorHint text="Vyplňte prosím názov aj typ spoločnosti." />}
           </>
@@ -960,7 +1099,7 @@ function CompanyWizard({ initialData, onComplete }) {
         {step === 3 && (
           <>
             <h2 style={{ fontFamily: "'Fraunces', serif", fontWeight: 600, fontSize: 22, color: COLORS.ink, margin: "0 0 20px" }}>
-              Kontaktné údaje
+              Kto údaje vypĺňa?
             </h2>
             <NumberInputText label="Meno a priezvisko (voliteľné)" value={data.contactName} onChange={upd("contactName")} icon={<User size={14} />} />
             <NumberInputText label="E-mail (voliteľné)" value={data.contactEmail} onChange={upd("contactEmail")} icon={<Mail size={14} />} />
@@ -1218,6 +1357,42 @@ async function fetchLiveExchangeRate(currency) {
    Pri akomkoľvek zlyhaní funkcia vráti null a appka potichu použije
    zástupný odhad.
    ============================================================ */
+/* ============================================================
+   ORSF — obojsmerné dohľadanie meno ↔ IČO (pohodlnostná funkcia vo wizarde)
+   ============================================================
+   ORSF (api.orsf.sk) je bezplatné, agregované REST API bez kľúča nad
+   viacerými slovenskými registrami (RPO, ORSR, RÚZ...). Je to nezávislý
+   beta projekt, NIE oficiálny register — preto ho appka používa len ako
+   pohodlnú návrhovú pomôcku priamo vo wizarde (našepkávanie IČO podľa mena
+   a naopak), nie ako zdroj dát pre samotné ocenenie — tým zostáva výhradne
+   oficiálny RegisterUZ (pozri fetchRegisterUzData vyššie).
+   ============================================================ */
+async function fetchOrsfSearch(query) {
+  try {
+    const res = await fetch(`https://api.orsf.sk/v1/search?q=${encodeURIComponent(query)}&limit=6`);
+    if (!res.ok) return [];
+    const data = await res.json();
+    const results = Array.isArray(data) ? data : data?.results || data?.data || [];
+    return results
+      .map((r) => ({ name: r.name || r.nazov || "", ico: r.nationalId || r.ico || "" }))
+      .filter((r) => r.name && r.ico);
+  } catch (_) {
+    return [];
+  }
+}
+
+async function fetchOrsfCompanyByIco(ico) {
+  try {
+    const res = await fetch(`https://api.orsf.sk/v1/companies/${encodeURIComponent(ico)}`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    const name = data?.name || data?.nazov || null;
+    return name ? { name, ico: data?.nationalId || data?.ico || ico } : null;
+  } catch (_) {
+    return null;
+  }
+}
+
 async function fetchRegisterUzData(ico) {
   const cleanIco = String(ico || "").replace(/\s/g, "");
   if (!/^\d{6,8}$/.test(cleanIco)) return null;
@@ -2169,7 +2344,7 @@ export default function App() {
                       <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 13, color: COLORS.inkSoft, marginTop: 2 }}>
                         rozpätie {formatEUR(result.unleveredLow)} – {formatEUR(result.unleveredHigh)}
                       </div>
-                      {advanced.enabled && Number(advanced.exchangeRate) > 0 && (
+                      {advanced.enabled && advanced.currency !== "EUR" && Number(advanced.exchangeRate) > 0 && (
                         <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 12, color: COLORS.brassDeep, marginTop: 4 }}>
                           ≈ {(result.unleveredMid * Number(advanced.exchangeRate)).toLocaleString("sk-SK", { maximumFractionDigits: 0 })}{" "}
                           {advanced.currency} (kurz 1 € = {advanced.exchangeRate} {advanced.currency})
@@ -2227,6 +2402,101 @@ export default function App() {
                       </div>
                     </div>
 
+                    {/* Faktory zohľadnené vo výpočte — viditeľné iba v PDF/tlači, aby bol
+                        report na obrazovke stručný, ale výtlačok úplne transparentný. */}
+                    <div className="print-only" style={{ marginTop: 22, paddingTop: 16, borderTop: `1px solid ${COLORS.line}` }}>
+                      <div style={{ fontFamily: "'Fraunces', serif", fontWeight: 600, fontSize: 15, color: COLORS.ink, marginBottom: 10 }}>
+                        Faktory zohľadnené vo výpočte
+                      </div>
+                      <table style={{ width: "100%", fontSize: 12.5, borderCollapse: "collapse" }}>
+                        <tbody>
+                          <tr>
+                            <td style={{ padding: "5px 8px 5px 0", color: COLORS.inkSoft, whiteSpace: "nowrap" }}>Krajina / región</td>
+                            <td style={{ padding: "5px 0", color: COLORS.ink, fontWeight: 600 }}>
+                              {profile?.country}{profile?.region ? `, ${profile.region}` : ""}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style={{ padding: "5px 8px 5px 0", color: COLORS.inkSoft, whiteSpace: "nowrap" }}>Odvetvie</td>
+                            <td style={{ padding: "5px 0", color: COLORS.ink, fontWeight: 600 }}>{result.sector?.label}</td>
+                          </tr>
+                          <tr>
+                            <td style={{ padding: "5px 8px 5px 0", color: COLORS.inkSoft, whiteSpace: "nowrap" }}>Nezamestnanosť</td>
+                            <td style={{ padding: "5px 0", color: COLORS.ink, fontWeight: 600 }}>
+                              {result.regional
+                                ? `${result.regional.unemployment.toFixed(1)} % (${result.regional.kraj}, regionálna hodnota)`
+                                : result.macro?.unemployment != null
+                                ? `${result.macro.unemployment.toFixed(1)} % (celoštátna hodnota)`
+                                : "nedostupné"}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style={{ padding: "5px 8px 5px 0", color: COLORS.inkSoft, whiteSpace: "nowrap" }}>Inflácia (HICP)</td>
+                            <td style={{ padding: "5px 0", color: COLORS.ink, fontWeight: 600 }}>
+                              {result.macro?.inflation != null ? `${result.macro.inflation.toFixed(1)} %` : "nedostupné"}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style={{ padding: "5px 8px 5px 0", color: COLORS.inkSoft, whiteSpace: "nowrap" }}>Risk-free rate</td>
+                            <td style={{ padding: "5px 0", color: COLORS.ink, fontWeight: 600 }}>
+                              {advanced.riskFreeRate}%{" "}
+                              {result.marketRisk?.riskFreeRate != null
+                                ? "(trhovo, výnos nemeckého 10Y dlhopisu)"
+                                : "(orientačná statická hodnota)"}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style={{ padding: "5px 8px 5px 0", color: COLORS.inkSoft, whiteSpace: "nowrap" }}>Country Risk Premium</td>
+                            <td style={{ padding: "5px 0", color: COLORS.ink, fontWeight: 600 }}>
+                              {advanced.countryRiskPremium}%{" "}
+                              {result.marketRisk?.marketCountryRiskPremium != null
+                                ? "(trhovo, spread dlhopisov + doladenie podľa nezamestnanosti/inflácie)"
+                                : "(orientačná statická hodnota, doladená podľa nezamestnanosti/inflácie)"}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style={{ padding: "5px 8px 5px 0", color: COLORS.inkSoft, whiteSpace: "nowrap" }}>Daň z príjmu PO</td>
+                            <td style={{ padding: "5px 0", color: COLORS.ink, fontWeight: 600 }}>{advanced.taxRate}%</td>
+                          </tr>
+                          <tr>
+                            <td style={{ padding: "5px 8px 5px 0", color: COLORS.inkSoft, whiteSpace: "nowrap" }}>Trend tržieb</td>
+                            <td style={{ padding: "5px 0", color: COLORS.ink, fontWeight: 600 }}>
+                              {GROWTH_OPTIONS.find((o) => o.value === inputs.growthTrend)?.label || inputs.growthTrend}{" "}
+                              {result.ruzInfo?.growthTrend ? "(reálny výpočet z viacročných tržieb)" : "(odhad)"}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style={{ padding: "5px 8px 5px 0", color: COLORS.inkSoft, whiteSpace: "nowrap" }}>Roky pôsobenia</td>
+                            <td style={{ padding: "5px 0", color: COLORS.ink, fontWeight: 600 }}>
+                              {inputs.yearsInBusiness} {result.ruzInfo?.yearsInBusinessIsExact ? "(presný dátum založenia)" : "(odhad)"}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style={{ padding: "5px 8px 5px 0", color: COLORS.inkSoft, whiteSpace: "nowrap" }}>EBITDA</td>
+                            <td style={{ padding: "5px 0", color: COLORS.ink, fontWeight: 600 }}>
+                              {result.ruzInfo?.ebitdaIsReal ? "reálny výpočet (prevádzkový zisk + odpisy)" : "odhad z čistého zisku"}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style={{ padding: "5px 8px 5px 0", color: COLORS.inkSoft, whiteSpace: "nowrap" }}>Dlh</td>
+                            <td style={{ padding: "5px 0", color: COLORS.ink, fontWeight: 600 }}>
+                              {result.ruzInfo?.financialDebtIsReal ? "reálne bankové úvery a výpomoci" : "odhad"}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style={{ padding: "5px 8px 5px 0", color: COLORS.inkSoft, whiteSpace: "nowrap" }}>Spoľahlivosť dát</td>
+                            <td style={{ padding: "5px 0", color: COLORS.ink, fontWeight: 600 }}>
+                              {((result.dataConfidence ?? 0) * 100).toFixed(0)} %
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                      <p style={{ fontSize: 11, color: COLORS.inkSoft, marginTop: 10, fontStyle: "italic" }}>
+                        Kurz meny, nezamestnanosť a inflácia sa sťahujú naživo z verejných zdrojov (ECB, Eurostat) v
+                        momente výpočtu. Zjednodušený, indikatívny model — nenahrádza znalecký posudok.
+                      </p>
+                    </div>
+
                     <div className="no-print" style={{ display: "flex", gap: 10, marginTop: 18 }}>
                       <button
                         onClick={handleSave}
@@ -2272,7 +2542,7 @@ export default function App() {
                       </button>
                     </div>
                     <div className="no-print" style={{ fontSize: 11.5, color: COLORS.inkSoft, marginTop: 8, textAlign: "center" }}>
-                      Tip: ak chceš do PDF zahrnúť aj vysvetlenie metodiky, najprv nižšie rozklikni "Ako to počítame".
+                      Tip: PDF vždy obsahuje tabuľku kľúčových faktorov (inflácia, nezamestnanosť, dane...). Ak chceš zahrnúť aj plné slovné vysvetlenie metodiky, najprv nižšie rozklikni "Ako to počítame".
                     </div>
                   </>
                 )}
