@@ -959,10 +959,10 @@ function CompanyWizard({ initialData, onComplete }) {
         {step === 0 && (
           <>
             <h2 style={{ fontFamily: "'Fraunces', serif", fontWeight: 600, fontSize: 22, color: COLORS.ink, margin: "0 0 4px" }}>
-              Kde firma sídli?
+              Sídlo firmy
             </h2>
             <p style={{ color: COLORS.inkSoft, fontSize: 13.5, margin: "0 0 20px" }}>
-              Táto informácia pomáha zohľadniť geopolitiku.
+              Táto informácia pomáha zohľadniť geopolitiku
             </p>
             <SelectInput label="Krajina" value={data.country} onChange={updCountry} options={COUNTRY_OPTIONS} />
             <SelectInput
@@ -982,7 +982,7 @@ function CompanyWizard({ initialData, onComplete }) {
         {step === 1 && (
           <>
             <h2 style={{ fontFamily: "'Fraunces', serif", fontWeight: 600, fontSize: 22, color: COLORS.ink, margin: "0 0 20px" }}>
-              Ako sa firma volá?
+              Názov firmy
             </h2>
             <div style={{ position: "relative" }}>
               <NumberInputText
@@ -1044,7 +1044,7 @@ function CompanyWizard({ initialData, onComplete }) {
               icon={<Contact size={14} />}
               numericOnly
               maxLength={8}
-              helper="Ak firma sídli na Slovensku, podľa IČO appka skúsi automaticky dohľadať reálne účtovné údaje z verejného registra."
+              helper="Ak firma sídli na Slovensku, appka sa pokúsi podľa IČO automaticky dohľadať reálne účtovné údaje z verejného registra."
             />
             {icoLookup && icoLookup.name !== data.companyName && (
               <div
@@ -1090,7 +1090,7 @@ function CompanyWizard({ initialData, onComplete }) {
         {step === 2 && (
           <>
             <h2 style={{ fontFamily: "'Fraunces', serif", fontWeight: 600, fontSize: 22, color: COLORS.ink, margin: "0 0 4px" }}>
-              Materská spoločnosť, alebo pobočka?
+              Materská spoločnosť alebo pobočka?
             </h2>
             <p style={{ color: COLORS.inkSoft, fontSize: 13.5, margin: "0 0 20px" }}>
               Táto informácia pomáha správne zaradiť firmu v rámci celej skupiny (ak existuje).
@@ -1112,7 +1112,7 @@ function CompanyWizard({ initialData, onComplete }) {
         {step === 3 && (
           <>
             <h2 style={{ fontFamily: "'Fraunces', serif", fontWeight: 600, fontSize: 22, color: COLORS.ink, margin: "0 0 20px" }}>
-              Kto údaje vypĺňa?
+              Kontaktné údaje
             </h2>
             <NumberInputText label="Meno a priezvisko (voliteľné)" value={data.contactName} onChange={upd("contactName")} icon={<User size={14} />} />
             <NumberInputText label="E-mail (voliteľné)" value={data.contactEmail} onChange={upd("contactEmail")} icon={<Mail size={14} />} />
@@ -2646,8 +2646,8 @@ export default function App() {
                         )}
                         {profile?.country && (
                           <p style={{ margin: "0 0 6px", fontSize: 12.5 }}>
-                            <strong style={{ color: COLORS.ink }}>Krajina:</strong> {profile.country} · daň z príjmu
-                            právnických osôb {advanced.taxRate}% · základná Country Risk Premium{" "}
+                            <strong style={{ color: COLORS.ink }}>Krajina:</strong> {profile.country} · základná daň z príjmu
+                            právnických osôb {advanced.taxRate}% · Country Risk Premium{" "}
                             {(COUNTRY_FINANCE_DEFAULTS[profile.country] || COUNTRY_FINANCE_DEFAULTS["Iná krajina"]).countryRiskPremium}%
                           </p>
                         )}
@@ -2670,7 +2670,7 @@ export default function App() {
                     )}
                     {result && (
                       <p style={{ margin: "0 0 10px" }}>
-                        <strong style={{ color: COLORS.ink }}>Zdroj vstupných dát:</strong> kurz meny sa načítava naživo
+                        <strong style={{ color: COLORS.ink }}>Zdroj vstupných dát:</strong> kurz meny sa načítava online
                         z verejného ECB API.{" "}
                         {result.dataSource === "manual" &&
                           "Finančné údaje (tržby, zisk, aktíva...) pre túto firmu boli zadané ručne poradcom vopred."}
