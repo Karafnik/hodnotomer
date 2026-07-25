@@ -918,7 +918,7 @@ function CompanyWizard({ initialData, onComplete }) {
         {step === 1 && (
           <>
             <h2 style={{ fontFamily: "'Fraunces', serif", fontWeight: 600, fontSize: 22, color: COLORS.ink, margin: "0 0 20px" }}>
-              Ako sa firma volá?
+              Názov firmy
             </h2>
             <NumberInputText label="Celý názov spoločnosti" value={data.companyName} onChange={upd("companyName")} icon={<Building2 size={14} />} />
             <NumberInputText
