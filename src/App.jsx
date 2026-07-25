@@ -19,9 +19,8 @@ import {
   ChevronLeft,
   Check,
   Pencil,
-  MapPin,
+  Home,
   Phone,
-  Briefcase,
   Download,
   Calendar,
 } from "lucide-react";
@@ -35,16 +34,16 @@ const FONT_IMPORT = `
 `;
 
 const COLORS = {
-  ink: "#17233B",
-  inkSoft: "#4A5568",
-  paper: "#F6F4EE",
-  paperDeep: "#EFEBE0",
-  line: "#E1DACB",
-  brass: "#C2954B",
-  brassDeep: "#9C7530",
-  teal: "#1F6F5C",
-  tealDeep: "#154F42",
-  red: "#B0483B",
+  ink: "#182449",
+  inkSoft: "#64748B",
+  paper: "#F8FAFC",
+  paperDeep: "#EEF2F9",
+  line: "#DEE4EF",
+  brass: "#D9A441",
+  brassDeep: "#A8781F",
+  teal: "#0EA37E",
+  tealDeep: "#0A7A5F",
+  red: "#E15A50",
 };
 
 /* ============================================================
@@ -129,6 +128,137 @@ const STRUCTURE_OPTIONS = [
   { value: "subsidiary", label: "Pobočka / dcérska spoločnosť (Subsidiary)" },
 ];
 
+// Regióny/kraje pre každú krajinu EÚ — zobrazujú sa vo wizarde dynamicky
+// podľa vybranej krajiny (namiesto ručného písania mesta).
+const REGIONS_BY_COUNTRY = {
+  Slovensko: [
+    "Bratislavský kraj",
+    "Trnavský kraj",
+    "Trenčiansky kraj",
+    "Nitriansky kraj",
+    "Žilinský kraj",
+    "Banskobystrický kraj",
+    "Prešovský kraj",
+    "Košický kraj",
+  ],
+  Belgicko: ["Region Brusel-hlavné mesto", "Flámsky región", "Valónsky región"],
+  Bulharsko: [
+    "Severozápadný región",
+    "Severný centrálny región",
+    "Severovýchodný región",
+    "Juhovýchodný región",
+    "Juhozápadný región",
+    "Južný centrálny región",
+  ],
+  Cyprus: ["Nikózia", "Limassol", "Larnaka", "Famagusta", "Pafos"],
+  Česko: [
+    "Praha",
+    "Stredočeský kraj",
+    "Juhočeský kraj",
+    "Plzeňský kraj",
+    "Karlovarský kraj",
+    "Ústecký kraj",
+    "Liberecký kraj",
+    "Královohradecký kraj",
+    "Pardubický kraj",
+    "Kraj Vysočina",
+    "Juhomoravský kraj",
+    "Olomoucký kraj",
+    "Zlínsky kraj",
+    "Moravskosliezsky kraj",
+  ],
+  Dánsko: ["Hlavné mesto", "Sealand", "Južné Dánsko", "Stredné Jútsko", "Severné Jútsko"],
+  Estónsko: [
+    "Harju", "Hiiu", "Ida-Viru", "Jõgeva", "Järva", "Lääne", "Lääne-Viru",
+    "Põlva", "Pärnu", "Rapla", "Saare", "Tartu", "Valga", "Viljandi", "Võru",
+  ],
+  Fínsko: [
+    "Uusimaa", "Varsinais-Suomi", "Satakunta", "Kanta-Häme", "Pirkanmaa",
+    "Päijät-Häme", "Kymenlaakso", "Etelä-Karjala", "Etelä-Savo", "Pohjois-Savo",
+    "Pohjois-Karjala", "Keski-Suomi", "Etelä-Pohjanmaa", "Pohjanmaa",
+    "Keski-Pohjanmaa", "Pohjois-Pohjanmaa", "Kainuu", "Laponsko", "Alandy",
+  ],
+  Francúzsko: [
+    "Auvergne-Rhône-Alpes", "Bourgogne-Franche-Comté", "Bretónsko",
+    "Centre-Val de Loire", "Korzika", "Grand Est", "Hauts-de-France",
+    "Île-de-France", "Normandia", "Nouvelle-Aquitaine", "Occitánsko",
+    "Pays de la Loire", "Provence-Alpes-Côte d'Azur",
+  ],
+  Grécko: [
+    "Attika", "Stredná Macedónia", "Kréta", "Východná Macedónia a Trácia",
+    "Západná Macedónia", "Epirus", "Tesália", "Iónske ostrovy",
+    "Západné Grécko", "Stredné Grécko", "Peloponéz", "Severné Egeis", "Južné Egeis",
+  ],
+  Holandsko: [
+    "Groningen", "Frízsko", "Drenthe", "Overijssel", "Flevoland", "Gelderland",
+    "Utrecht", "Severné Holandsko", "Južné Holandsko", "Zeeland",
+    "Severné Brabantsko", "Limburg",
+  ],
+  Chorvátsko: ["Jadranské Chorvátsko", "Kontinentálne Chorvátsko"],
+  Írsko: ["Leinster", "Munster", "Connacht", "Ulster (írska časť)"],
+  Litva: [
+    "Vilniuský kraj", "Kaunský kraj", "Klaipėdský kraj", "Šiauliaiský kraj",
+    "Panevėžyský kraj", "Alytuský kraj", "Marijampolský kraj",
+    "Tauragėský kraj", "Telšiaiský kraj", "Utenský kraj",
+  ],
+  Lotyšsko: ["Riga", "Pieriga", "Vidzeme", "Kurzeme", "Zemgale", "Latgale"],
+  Luxembursko: ["Luxembourg", "Diekirch", "Grevenmacher"],
+  Maďarsko: [
+    "Budapešť", "Baranya", "Bács-Kiskun", "Békés", "Borsod-Abaúj-Zemplén",
+    "Csongrád-Csanád", "Fejér", "Győr-Moson-Sopron", "Hajdú-Bihar", "Heves",
+    "Jász-Nagykun-Szolnok", "Komárom-Esztergom", "Nógrád", "Pest", "Somogy",
+    "Szabolcs-Szatmár-Bereg", "Tolna", "Vas", "Veszprém", "Zala",
+  ],
+  Malta: ["Malta", "Gozo"],
+  Nemecko: [
+    "Bádensko-Württembersko", "Bavorsko", "Berlín", "Brandenbursko", "Brémy",
+    "Hamburg", "Hesensko", "Meklenbursko-Predpomoransko", "Dolné Sasko",
+    "Severné Porýnie-Vestfálsko", "Porýnie-Falcko", "Sársko", "Sasko",
+    "Sasko-Anhaltsko", "Šlezvicko-Holštajnsko", "Durínsko",
+  ],
+  Poľsko: [
+    "Dolnosliezske", "Kujavsko-pomoranské", "Lublinské", "Lubušské",
+    "Lodžské", "Malopoľské", "Mazovské", "Opolské", "Podkarpatské",
+    "Podleské", "Pomoranské", "Sliezske", "Svätokrížske",
+    "Varmsko-mazurské", "Veľkopoľské", "Západopomoranské",
+  ],
+  Portugalsko: [
+    "Sever", "Stred", "Metropolitná oblasť Lisabon", "Alentejo", "Algarve",
+    "Azory", "Madeira",
+  ],
+  Rakúsko: [
+    "Burgenland", "Korutánsko", "Dolné Rakúsko", "Horné Rakúsko",
+    "Salzbursko", "Štajersko", "Tirolsko", "Vorarlbersko", "Viedeň",
+  ],
+  Rumunsko: [
+    "Severozápad", "Stred", "Severovýchod", "Juhovýchod", "Juh-Muntenia",
+    "Bukurešť-Ilfov", "Juhozápad-Oltenia", "Západ",
+  ],
+  Slovinsko: [
+    "Pomursko", "Podravsko", "Korutánsko (Koroška)", "Savinsko", "Zasavsko",
+    "Posavsko", "Juhovýchodné Slovinsko", "Stredné Slovinsko", "Gorenjsko",
+    "Notranjsko-krasko", "Goriško", "Obalno-krasko",
+  ],
+  Španielsko: [
+    "Andalúzia", "Aragónsko", "Astúria", "Baleárske ostrovy", "Kanárske ostrovy",
+    "Kantábria", "Kastília-La Mancha", "Kastília a León", "Katalánsko",
+    "Extremadura", "Galícia", "Madrid", "Murcia", "Navarra", "Baskicko",
+    "La Rioja", "Valencijské spoločenstvo",
+  ],
+  Švédsko: [
+    "Štokholm", "Východné Švédsko", "Malé ostrovy južného Švédska",
+    "Južné Švédsko", "Západné Švédsko", "Severné stredné Švédsko",
+    "Stredný Norrland", "Horný Norrland",
+  ],
+  Taliansko: [
+    "Piemont", "Valle d'Aosta", "Lombardsko", "Trentino-Alto Adige",
+    "Benátsko", "Friuli-Venezia Giulia", "Ligúria", "Emiliano-Romagna",
+    "Toskánsko", "Umbria", "Marche", "Lazio", "Abruzzo", "Molise",
+    "Kampánia", "Apúlia", "Basilicata", "Kalábria", "Sicília", "Sardínia",
+  ],
+  "Iná krajina": [],
+};
+
 /* ============================================================
    POMOCNÉ FUNKCIE
    ============================================================ */
@@ -144,7 +274,7 @@ const obfuscate = (s) => btoa(unescape(encodeURIComponent(s || "")));
 /* ============================================================
    OCEŇOVACIA LOGIKA
    ============================================================ */
-function calculateValuation(inputs, baseCapRateOverridePct = null, debtAmount = 0) {
+function calculateValuation(inputs, baseCapRateOverridePct = null, debtAmount = 0, dataConfidence = 0.5) {
   const sector = INDUSTRIES[inputs.industry] || INDUSTRIES.other;
   const years = Number(inputs.yearsInBusiness) || 0;
 
@@ -169,8 +299,15 @@ function calculateValuation(inputs, baseCapRateOverridePct = null, debtAmount = 
   // malej firmy, ktorú CAPM/WACC sám osebe nezachytáva.
   const baseCapRate = baseCapRateOverridePct != null ? baseCapRateOverridePct : 22;
   const capRateMid = clamp(baseCapRate + capAdj, 4, 60);
-  const capRateLow = clamp(capRateMid - 4, 3, 65); // nižšia miera => vyššia hodnota
-  const capRateHigh = clamp(capRateMid + 4, 3, 65);
+
+  // Šírka rozpätia okolo strednej kapitalizačnej miery závisí od toho, koľko
+  // vstupov je reálnych (RegisterUZ, trhové výnosy dlhopisov...) oproti
+  // odhadovaným — viac reálnych dát = užšie, sebavedomejšie rozpätie, presne
+  // tak, ako by postupoval analytik s viac/menej podkladmi. dataConfidence
+  // 0 = všetko odhad → pásmo ±6 p.b., 1 = všetko reálne → pásmo ±2 p.b.
+  const capRateBand = 6 - 4 * clamp(dataConfidence, 0, 1);
+  const capRateLow = clamp(capRateMid - capRateBand, 3, 65); // nižšia miera => vyššia hodnota
+  const capRateHigh = clamp(capRateMid + capRateBand, 3, 65);
 
   const netProfit = Number(inputs.netProfit) || 0;
   const capValueMid = netProfit / (capRateMid / 100);
@@ -181,9 +318,17 @@ function calculateValuation(inputs, baseCapRateOverridePct = null, debtAmount = 
   const qualityAdj = -capAdj;
   const factor = clamp(1 + qualityAdj / 100, 0.75, 1.25);
 
+  // Rovnaký princíp aj pri odvetvovom násobku — pri vyššej spoľahlivosti dát sa
+  // násobkové rozpätie zúži smerom k stredu (max o polovicu pôvodnej šírky).
+  const sectorMid = (sector.low + sector.high) / 2;
+  const sectorHalfWidth = (sector.high - sector.low) / 2;
+  const narrowedHalfWidth = sectorHalfWidth * (1 - clamp(dataConfidence, 0, 1) * 0.5);
+  const sectorLowAdj = sectorMid - narrowedHalfWidth;
+  const sectorHighAdj = sectorMid + narrowedHalfWidth;
+
   const ebitda = Number(inputs.ebitda) || 0;
-  const multLow = sector.low * factor;
-  const multHigh = sector.high * factor;
+  const multLow = sectorLowAdj * factor;
+  const multHigh = sectorHighAdj * factor;
   const ebitdaValueLow = ebitda * multLow;
   const ebitdaValueHigh = ebitda * multHigh;
   const ebitdaValueMid = ebitda * ((multLow + multHigh) / 2);
@@ -208,6 +353,8 @@ function calculateValuation(inputs, baseCapRateOverridePct = null, debtAmount = 
     capRateMid,
     capRateLow,
     capRateHigh,
+    capRateBand,
+    dataConfidence: clamp(dataConfidence, 0, 1),
     capValueLow,
     capValueMid,
     capValueHigh,
@@ -240,6 +387,26 @@ function calculateValuation(inputs, baseCapRateOverridePct = null, debtAmount = 
    (Unlevered / Enterprise Value). Zadaný Debt sa následne odpočíta,
    čím sa získa hodnota pre vlastníka (Levered / Equity Value).
    ============================================================ */
+/* ============================================================
+   SPOĽAHLIVOSŤ DÁT — koľko vstupov je reálnych vs. odhadovaných
+   ============================================================
+   Vyššia spoľahlivosť => užšie rozpätie výsledku (pozri calculateValuation)
+   a viditeľný odznak v reporte. Súčet váh pri firme s ručne zadanými
+   dátami môže dosiahnuť 1,0; pri RegisterUZ firme typicky 0,6–0,9;
+   pri čisto zástupnom odhade 0.
+   ============================================================ */
+function computeDataConfidence({ dataSource, ruzInfo, marketRisk }) {
+  let score = 0;
+  if (dataSource === "manual") score += 0.4;
+  else if (dataSource === "registeruz") score += 0.3;
+  if (ruzInfo?.ebitdaIsReal) score += 0.15;
+  if (ruzInfo?.financialDebtIsReal) score += 0.1;
+  if (ruzInfo?.growthTrend) score += 0.15;
+  if (ruzInfo?.yearsInBusinessIsExact) score += 0.05;
+  if (marketRisk?.marketCountryRiskPremium != null) score += 0.15;
+  return clamp(score, 0, 1);
+}
+
 function computeCapmWacc(a) {
   const de = clamp(Number(a.debtToEquity) / 100 || 0, 0, 10); // D/E ako pomer
   const tax = clamp(Number(a.taxRate) / 100 || 0, 0, 0.6);
@@ -297,6 +464,22 @@ function hashString(str) {
     h |= 0;
   }
   return Math.abs(h);
+}
+
+/* Jednoznačný kľúč firmy pre uloženie dát (ručné admin vstupy, história).
+   Bez toho by sa napr. ručne zadané finančné údaje jednej firmy mohli omylom
+   použiť aj pri inej firme spracovanej neskôr v tom istom prehliadači.
+   Prioritne používa IČO (jednoznačné), inak názov firmy + krajina. */
+function companyKey(profile) {
+  if (!profile) return "default";
+  if (profile.ico) return `ico-${String(profile.ico).replace(/\s/g, "")}`;
+  const slug = (profile.companyName || "neznama-firma")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return `name-${slug}-${profile.country || ""}`;
 }
 
 /* Mapovanie SK NACE kódu (vracia ho RegisterUZ priamo pri firme) na naše
@@ -540,7 +723,7 @@ function NumberInput({ label, value, onChange, suffix = "€", helper }) {
   return (
     <label style={{ display: "block", marginBottom: 16 }}>
       <div style={{ fontSize: 13.5, color: COLORS.ink, fontWeight: 600, marginBottom: 6 }}>{label}</div>
-      <div style={{ display: "flex", alignItems: "center", border: `1px solid ${COLORS.line}`, borderRadius: 3, background: "#fff", overflow: "hidden" }}>
+      <div style={{ display: "flex", alignItems: "center", border: `1px solid ${COLORS.line}`, borderRadius: 10, background: "#fff", overflow: "hidden" }}>
         <input
           type="number"
           value={value}
@@ -575,7 +758,7 @@ function SelectInput({ label, value, onChange, options }) {
             width: "100%",
             appearance: "none",
             border: `1px solid ${COLORS.line}`,
-            borderRadius: 3,
+            borderRadius: 10,
             background: "#fff",
             padding: "10px 34px 10px 12px",
             fontSize: 13.5,
@@ -610,14 +793,13 @@ function CompanyWizard({ initialData, onComplete }) {
   const [data, setData] = useState(
     initialData || {
       country: "Slovensko",
-      city: "",
+      region: REGIONS_BY_COUNTRY["Slovensko"][0],
       companyName: "",
       ico: "",
       companyType: "sro",
       structureType: "hq",
       parentCompany: "",
       contactName: "",
-      contactPosition: "",
       contactEmail: "",
       contactPhone: "",
     }
@@ -626,11 +808,17 @@ function CompanyWizard({ initialData, onComplete }) {
 
   const upd = (k) => (v) => setData((s) => ({ ...s, [k]: v }));
 
+  // pri zmene krajiny sa región automaticky prepne na prvý z jej zoznamu
+  // (zoznamy sa medzi krajinami líšia, starý výber by nemusel dávať zmysel)
+  const updCountry = (v) => {
+    setData((s) => ({ ...s, country: v, region: (REGIONS_BY_COUNTRY[v] || [])[0] || "" }));
+  };
+
   const isStepValid = () => {
-    if (step === 0) return data.country.trim() && data.city.trim();
+    if (step === 0) return data.country.trim() && data.region.trim();
     if (step === 1) return data.companyName.trim() && data.companyType;
     if (step === 2) return !!data.structureType;
-    if (step === 3) return data.contactName.trim() && /\S+@\S+\.\S+/.test(data.contactEmail);
+    if (step === 3) return true;
     return true;
   };
 
@@ -710,28 +898,36 @@ function CompanyWizard({ initialData, onComplete }) {
               Kde firma sídli?
             </h2>
             <p style={{ color: COLORS.inkSoft, fontSize: 13.5, margin: "0 0 20px" }}>
-              Táto informácia pomáha zohľadniť krajinové a regionálne riziko v ocenení.
+              Táto informácia pomáha zohľadniť geopolitiku.
             </p>
-            <SelectInput label="Krajina" value={data.country} onChange={upd("country")} options={COUNTRY_OPTIONS} />
-            <NumberInputText label="Mesto" value={data.city} onChange={upd("city")} icon={<MapPin size={14} />} />
-            {touched && !isStepValid() && <ErrorHint text="Vyplňte prosím krajinu a mesto." />}
+            <SelectInput label="Krajina" value={data.country} onChange={updCountry} options={COUNTRY_OPTIONS} />
+            <SelectInput
+              label="Kraj / región"
+              value={data.region}
+              onChange={upd("region")}
+              options={
+                (REGIONS_BY_COUNTRY[data.country] || []).length > 0
+                  ? REGIONS_BY_COUNTRY[data.country]
+                  : ["Neuvedené"]
+              }
+            />
+            {touched && !isStepValid() && <ErrorHint text="Vyplňte prosím krajinu a kraj/región." />}
           </>
         )}
 
         {step === 1 && (
           <>
-            <h2 style={{ fontFamily: "'Fraunces', serif", fontWeight: 600, fontSize: 22, color: COLORS.ink, margin: "0 0 4px" }}>
+            <h2 style={{ fontFamily: "'Fraunces', serif", fontWeight: 600, fontSize: 22, color: COLORS.ink, margin: "0 0 20px" }}>
               Ako sa firma volá?
             </h2>
-            <p style={{ color: COLORS.inkSoft, fontSize: 13.5, margin: "0 0 20px" }}>
-              Celý oficiálny názov spoločnosti, IČO a jej právna forma.
-            </p>
             <NumberInputText label="Celý názov spoločnosti" value={data.companyName} onChange={upd("companyName")} icon={<Building2 size={14} />} />
             <NumberInputText
               label="IČO"
               value={data.ico}
               onChange={upd("ico")}
               icon={<Contact size={14} />}
+              numericOnly
+              maxLength={8}
               helper="Ak firma sídli na Slovensku, podľa IČO appka skúsi automaticky dohľadať reálne účtovné údaje z verejného registra."
             />
             <SelectInput label="Typ spoločnosti" value={data.companyType} onChange={upd("companyType")} options={COMPANY_TYPE_OPTIONS} />
@@ -767,23 +963,16 @@ function CompanyWizard({ initialData, onComplete }) {
               Kto údaje vypĺňa?
             </h2>
             <p style={{ color: COLORS.inkSoft, fontSize: 13.5, margin: "0 0 20px" }}>
-              Kontaktné údaje osoby zodpovednej za tieto informácie.
+              Kontaktné údaje osoby zodpovednej za tieto informácie (voliteľné).
             </p>
-            <NumberInputText label="Meno a priezvisko" value={data.contactName} onChange={upd("contactName")} icon={<User size={14} />} />
-            <NumberInputText
-              label="Pozícia (voliteľné)"
-              value={data.contactPosition}
-              onChange={upd("contactPosition")}
-              icon={<Briefcase size={14} />}
-            />
-            <NumberInputText label="E-mail" value={data.contactEmail} onChange={upd("contactEmail")} icon={<Mail size={14} />} />
+            <NumberInputText label="Meno a priezvisko (voliteľné)" value={data.contactName} onChange={upd("contactName")} icon={<User size={14} />} />
+            <NumberInputText label="E-mail (voliteľné)" value={data.contactEmail} onChange={upd("contactEmail")} icon={<Mail size={14} />} />
             <NumberInputText
               label="Telefón (voliteľné)"
               value={data.contactPhone}
               onChange={upd("contactPhone")}
               icon={<Phone size={14} />}
             />
-            {touched && !isStepValid() && <ErrorHint text="Vyplňte prosím meno a platný e-mail." />}
           </>
         )}
 
@@ -795,14 +984,15 @@ function CompanyWizard({ initialData, onComplete }) {
                 display: "flex",
                 alignItems: "center",
                 gap: 6,
-                padding: "11px 16px",
-                borderRadius: 3,
+                padding: "12px 18px",
+                borderRadius: 999,
                 border: `1px solid ${COLORS.line}`,
                 background: "#fff",
                 color: COLORS.ink,
                 fontWeight: 600,
                 fontSize: 13.5,
                 cursor: "pointer",
+                transition: "background 150ms ease",
               }}
             >
               <ChevronLeft size={15} /> Späť
@@ -816,15 +1006,16 @@ function CompanyWizard({ initialData, onComplete }) {
               alignItems: "center",
               justifyContent: "center",
               gap: 6,
-              padding: "12px 16px",
-              borderRadius: 5,
+              padding: "13px 20px",
+              borderRadius: 999,
               border: "none",
               background: COLORS.ink,
               color: COLORS.paper,
               fontWeight: 700,
               fontSize: 13.5,
               cursor: "pointer",
-              boxShadow: "0 6px 16px -6px rgba(23,35,59,0.5)",
+              transition: "transform 150ms ease, box-shadow 150ms ease",
+              boxShadow: "0 8px 20px -6px rgba(24,36,73,0.5)",
             }}
           >
             {step === WIZARD_STEPS.length - 1 ? "Pokračovať k oceneniu" : "Ďalej"}
@@ -836,16 +1027,23 @@ function CompanyWizard({ initialData, onComplete }) {
   );
 }
 
-function NumberInputText({ label, value, onChange, icon, helper }) {
+function NumberInputText({ label, value, onChange, icon, helper, numericOnly = false, maxLength }) {
+  const handleChange = (e) => {
+    const v = numericOnly ? e.target.value.replace(/\D/g, "") : e.target.value;
+    onChange(v);
+  };
   return (
     <label style={{ display: "block", marginBottom: 16 }}>
       <div style={{ fontSize: 13.5, color: COLORS.ink, fontWeight: 600, marginBottom: 6 }}>{label}</div>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, border: `1px solid ${COLORS.line}`, borderRadius: 3, background: "#fff", padding: "10px 12px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, border: `1px solid ${COLORS.line}`, borderRadius: 10, background: "#fff", padding: "10px 12px" }}>
         {icon && <span style={{ color: COLORS.inkSoft, display: "flex" }}>{icon}</span>}
         <input
           type="text"
+          inputMode={numericOnly ? "numeric" : "text"}
+          pattern={numericOnly ? "[0-9]*" : undefined}
+          maxLength={maxLength}
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={handleChange}
           style={{ flex: 1, border: "none", outline: "none", fontSize: 14, fontFamily: "'IBM Plex Sans', sans-serif", color: COLORS.ink, background: "transparent" }}
         />
       </div>
@@ -856,7 +1054,7 @@ function NumberInputText({ label, value, onChange, icon, helper }) {
 
 function ErrorHint({ text }) {
   return (
-    <div style={{ fontSize: 13, color: COLORS.red, background: "rgba(176,72,59,0.08)", padding: "8px 10px", borderRadius: 3, marginTop: 4 }}>
+    <div style={{ fontSize: 13, color: COLORS.red, background: "rgba(225,90,80,0.08)", padding: "8px 10px", borderRadius: 10, marginTop: 4 }}>
       {text}
     </div>
   );
@@ -922,36 +1120,71 @@ async function fetchCountryMacroData(countryName) {
 }
 
 /* ============================================================
+   VÝNOSY ŠTÁTNYCH DLHOPISOV — trhový proxy namiesto kreditného ratingu
+   ============================================================
+   Skutočné ratingy S&P/Moody's/Fitch nemajú voľné API. Výnos 10-ročných
+   štátnych dlhopisov (Eurostat, dataset irt_lt_mcby_m, mesačne) je ale
+   lepší, živý trhový signál rizika krajiny — kým rating sa mení so
+   spozdením, dlhopisový trh riziko precenuje priebežne. Nemecký výnos
+   slúži ako referenčný "risk-free" benchmark v rámci EÚ; rozdiel oproti
+   nemu (spread) je trhovo odvodená Country Risk Premium.
+   ============================================================ */
+async function fetchSovereignBondYield(geo) {
+  return await fetchEurostatLatest("irt_lt_mcby_m", { bonds: "MCBY" }, geo);
+}
+
+async function fetchMarketRiskData(countryName) {
+  const geo = EUROSTAT_COUNTRY_CODES[countryName];
+  if (!geo) return null;
+  const [deYield, countryYield] = await Promise.all([
+    fetchSovereignBondYield("DE"),
+    geo === "DE" ? Promise.resolve(null) : fetchSovereignBondYield(geo),
+  ]);
+  if (deYield == null) return null;
+  const resolvedCountryYield = geo === "DE" ? deYield : countryYield;
+  return {
+    riskFreeRate: deYield,
+    countryYield: resolvedCountryYield,
+    marketCountryRiskPremium:
+      resolvedCountryYield != null ? Math.max(0, resolvedCountryYield - deYield) : null,
+  };
+}
+
+/* ============================================================
    REGIONÁLNE SPRESNENIE (kraj → NUTS2 → Eurostat) — len SR
    ============================================================
-   RegisterUZ pri slovenskej firme vracia kód kraja (číselník ŠÚSR
-   0023/RSUJ3). Namapujeme ho na zodpovedajúci NUTS2 región a stiahneme
-   jeho regionálnu mieru nezamestnanosti — tá je presnejšia než
-   celoštátny priemer a reálne rozlíši napr. Bratislavský kraj od
-   Trenčianskeho. Ak sa nepodarí stiahnuť, použije sa celoštátna
-   hodnota z fetchCountryMacroData bez regionálneho spresnenia.
+   RegisterUZ pri slovenskej firme vracia pole "kraj" rovno ako NUTS3 kód
+   (napr. "SK010" pre Bratislavský kraj — overené na reálnom príklade
+   z verejnej dokumentácie API). NUTS2 sa z neho odvodí jednoducho
+   skrátením na 4 znaky (napr. "SK022" → "SK02"), keďže NUTS3 kód v EÚ
+   klasifikácii je vždy NUTS2 kód + jedna číslica navyše. Stiahneme
+   regionálnu mieru nezamestnanosti — presnejšiu než celoštátny priemer,
+   reálne rozlíši napr. Bratislavský kraj od Trenčianskeho. Ak sa
+   nepodarí stiahnuť, použije sa celoštátna hodnota bez spresnenia.
    ============================================================ */
-const SK_KRAJ_TO_NUTS2 = {
-  1: { nuts2: "SK01", nazov: "Bratislavský kraj" },
-  2: { nuts2: "SK02", nazov: "Trnavský kraj" },
-  3: { nuts2: "SK02", nazov: "Trenčiansky kraj" },
-  4: { nuts2: "SK02", nazov: "Nitriansky kraj" },
-  5: { nuts2: "SK03", nazov: "Žilinský kraj" },
-  6: { nuts2: "SK03", nazov: "Banskobystrický kraj" },
-  7: { nuts2: "SK04", nazov: "Prešovský kraj" },
-  8: { nuts2: "SK04", nazov: "Košický kraj" },
+const SK_NUTS3_NAZVY = {
+  SK010: "Bratislavský kraj",
+  SK021: "Trnavský kraj",
+  SK022: "Trenčiansky kraj",
+  SK023: "Nitriansky kraj",
+  SK031: "Žilinský kraj",
+  SK032: "Banskobystrický kraj",
+  SK041: "Prešovský kraj",
+  SK042: "Košický kraj",
 };
 
 async function fetchRegionalUnemployment(krajCode) {
-  const region = SK_KRAJ_TO_NUTS2[Number(krajCode)];
-  if (!region) return null;
+  const nuts3 = String(krajCode || "").toUpperCase();
+  if (!/^SK\d{3}$/.test(nuts3)) return null; // neočakávaný formát — bezpečne preskočiť
+  const nuts2 = nuts3.slice(0, 4);
+  const nazov = SK_NUTS3_NAZVY[nuts3] || nuts3;
   const unemployment = await fetchEurostatLatest(
     "lfst_r_lfu3rt",
     { sex: "T", age: "Y15-74", unit: "PC_ACT" },
-    region.nuts2
+    nuts2
   );
   if (unemployment == null) return null;
-  return { unemployment, kraj: region.nazov, nuts2: region.nuts2 };
+  return { unemployment, kraj: nazov, nuts2 };
 }
 
 async function fetchLiveExchangeRate(currency) {
@@ -999,63 +1232,99 @@ async function fetchRegisterUzData(ico) {
     return res.json();
   };
 
-  try {
-    const jList = await getJson(`${base}/uctovne-jednotky?zmenene-od=2000-01-01&ico=${cleanIco}`);
-    const ujId = jList?.id?.[0];
-    if (!ujId) return null;
+  // Skutočný počet dátových stĺpcov tabuľky sa v API NEVRACIA ako jednoduché
+  // číslo (pole "pocetDatovychStlpcov" neexistuje) — treba ho odvodiť z
+  // hlavičky tabuľky (hlavicka: zoznam buniek s pozíciou stlpec + šírkou
+  // sirkaStlpca). Bez tohto by sa pri viacstĺpcových tabuľkách (napr. súvaha
+  // s Brutto/Korekcia/Netto) čítal vždy len prvý stĺpec.
+  const getColumnCount = (templateTabulka) => {
+    const hlavicka = templateTabulka?.hlavicka;
+    if (!hlavicka || hlavicka.length === 0) return 1;
+    let maxCol = 1;
+    for (const h of hlavicka) {
+      const endCol = (h.stlpec || 1) + (h.sirkaStlpca || 1) - 1;
+      if (endCol > maxCol) maxCol = endCol;
+    }
+    return maxCol;
+  };
 
-    const uj = await getJson(`${base}/uctovna-jednotka?id=${ujId}`);
-    const closureIds = uj?.idUctovnychZavierok || [];
-    if (closureIds.length === 0) return null;
+  // Vo väčšine výkazov RÚZ je posledný stĺpec porovnávacie MINULÉ obdobie —
+  // stĺpec s aktuálnymi (bežnými) dátami je tak takmer vždy predposledný
+  // (napr. Brutto/Korekcia/Netto-bežné/Netto-minulé → chceme 3. z 4 stĺpcov).
+  // Pri jedinom stĺpci (žiadne porovnanie) je správne jednoducho stĺpec 0.
+  const currentPeriodColumnIndex = (columnCount) => (columnCount <= 1 ? 0 : columnCount - 2);
 
-    // skontrolovať posledných pár závierok (podľa id) a vybrať tú s najnovším obdobím
-    const candidateIds = closureIds.slice(-5);
-    const closures = (
-      await Promise.all(candidateIds.map((id) => getJson(`${base}/uctovna-zavierka?id=${id}`)))
-    ).filter((c) => c && c.obdobieDo);
-    if (closures.length === 0) return null;
-    closures.sort((a, b) => (a.obdobieDo < b.obdobieDo ? 1 : -1));
-    const latest = closures[0];
+  // nájde hodnotu v tabuľke podľa kľúčových slov v texte riadku šablóny.
+  // useCurrentPeriodColumn=true pre súvahové položky (aktíva, imanie, dlh),
+  // kde treba konkrétne stĺpec bežného obdobia (nie brutto, nie minulé obdobie).
+  const findValue = (tabulka, templateTabulka, keywords, useCurrentPeriodColumn = false) => {
+    if (!tabulka?.data || !templateTabulka?.riadky) return null;
+    const dataCols = getColumnCount(templateTabulka);
+    const col = useCurrentPeriodColumn ? currentPeriodColumnIndex(dataCols) : 0;
+    for (let i = 0; i < templateTabulka.riadky.length; i++) {
+      const text = (templateTabulka.riadky[i].text && templateTabulka.riadky[i].text.sk) || "";
+      if (keywords.some((k) => text.toLowerCase().includes(k.toLowerCase()))) {
+        const val = tabulka.data[i * dataCols + col];
+        const num = val != null ? parseFloat(val) : NaN;
+        if (!isNaN(num)) return num;
+      }
+    }
+    return null;
+  };
 
-    const reportIds = latest.idUctovnychVykazov || [];
+  // rovnaké ako findValue, ale spočíta VŠETKY riadky, ktoré zodpovedajú kľúčovým
+  // slovám (napr. bankové úvery bývajú v súvahe rozdelené na dlhodobé/krátkodobé)
+  const findValueSum = (tabulka, templateTabulka, keywords, useCurrentPeriodColumn = false) => {
+    if (!tabulka?.data || !templateTabulka?.riadky) return null;
+    const dataCols = getColumnCount(templateTabulka);
+    const col = useCurrentPeriodColumn ? currentPeriodColumnIndex(dataCols) : 0;
+    let sum = 0,
+      found = false;
+    for (let i = 0; i < templateTabulka.riadky.length; i++) {
+      const text = (templateTabulka.riadky[i].text && templateTabulka.riadky[i].text.sk) || "";
+      if (keywords.some((k) => text.toLowerCase().includes(k.toLowerCase()))) {
+        const val = tabulka.data[i * dataCols + col];
+        const num = val != null ? parseFloat(val) : NaN;
+        if (!isNaN(num)) {
+          sum += num;
+          found = true;
+        }
+      }
+    }
+    return found ? sum : null;
+  };
+
+  // stiahne výkazy danej závierky. `income` = tržby/zisk/EBITDA komponenty
+  // (zmysluplné priemerovať za viac rokov), `balance` = súvahové položky
+  // (aktíva, vlastné imanie, dlh — berú sa len z najnovšieho roka, nedáva
+  // zmysel ich priemerovať naprieč rokmi).
+  const extractFromClosure = async (closure, templateCache, { income = true, balance = false } = {}) => {
+    const reportIds = closure?.idUctovnychVykazov || [];
     if (reportIds.length === 0) return null;
-
     const reports = (
       await Promise.all(reportIds.map((id) => getJson(`${base}/uctovny-vykaz?id=${id}`)))
     ).filter((r) => r?.obsah?.tabulky);
     if (reports.length === 0) return null;
 
-    const templateIds = [...new Set(reports.map((r) => r.idSablony))];
-    const templates = await Promise.all(templateIds.map((id) => getJson(`${base}/sablona?id=${id}`)));
-    const templateMap = {};
-    templates.forEach((t) => {
-      if (t) templateMap[t.id] = t;
-    });
-
-    // nájde hodnotu v tabuľke podľa kľúčových slov v texte riadku šablóny
-    const findValue = (tabulka, templateTabulka, keywords, columnFromEnd = null) => {
-      if (!tabulka?.data || !templateTabulka?.riadky) return null;
-      const dataCols = templateTabulka.pocetDatovychStlpcov || 1;
-      const col = columnFromEnd != null ? Math.max(0, dataCols - 1 - columnFromEnd) : 0;
-      for (let i = 0; i < templateTabulka.riadky.length; i++) {
-        const text = (templateTabulka.riadky[i].text && templateTabulka.riadky[i].text.sk) || "";
-        if (keywords.some((k) => text.toLowerCase().includes(k.toLowerCase()))) {
-          const val = tabulka.data[i * dataCols + col];
-          const num = val != null ? parseFloat(val) : NaN;
-          if (!isNaN(num)) return num;
-        }
-      }
-      return null;
-    };
+    const missingTemplateIds = [...new Set(reports.map((r) => r.idSablony))].filter((id) => !templateCache[id]);
+    if (missingTemplateIds.length > 0) {
+      const fetched = await Promise.all(missingTemplateIds.map((id) => getJson(`${base}/sablona?id=${id}`)));
+      fetched.forEach((t) => {
+        if (t) templateCache[t.id] = t;
+      });
+    }
 
     let revenue = null,
       profit = null,
+      operatingProfit = null,
+      depreciation = null,
       assets = null,
       equity = null,
-      liabilities = null;
+      liabilities = null,
+      financialDebt = null;
 
     for (const report of reports) {
-      const template = templateMap[report.idSablony];
+      const template = templateCache[report.idSablony];
       if (!template) continue;
       const tabulky = report.obsah.tabulky;
       const templateTabulky = template.tabulky;
@@ -1064,45 +1333,189 @@ async function fetchRegisterUzData(ico) {
         const templateTabulka = templateTabulky[ti];
         if (!templateTabulka) continue;
 
-        if (revenue === null) {
-          revenue = findValue(tabulka, templateTabulka, [
-            "Tržby z predaja vlastných výrobkov",
-            "Tržby za vlastné výkony a tovar",
-            "Tržby z predaja výrobkov, tovarov a služieb",
-            "Čistý obrat",
-          ]);
+        if (income) {
+          if (revenue === null) {
+            revenue = findValue(tabulka, templateTabulka, [
+              "Tržby z predaja vlastných výrobkov",
+              "Tržby za vlastné výkony a tovar",
+              "Tržby z predaja výrobkov, tovarov a služieb",
+              "Čistý obrat",
+            ]);
+          }
+          if (profit === null) {
+            profit = findValue(tabulka, templateTabulka, [
+              "Výsledok hospodárenia za účtovné obdobie po zdanení",
+              "Výsledok hospodárenia za účtovné obdobie",
+            ]);
+          }
+          if (operatingProfit === null) {
+            operatingProfit = findValue(tabulka, templateTabulka, [
+              "Výsledok hospodárenia z hospodárskej činnosti",
+              "Výsledok hospodárenia z prevádzkovej činnosti",
+            ]);
+          }
+          if (depreciation === null) {
+            depreciation = findValue(tabulka, templateTabulka, [
+              "Odpisy dlhodobého nehmotného majetku a dlhodobého hmotného majetku",
+              "Odpisy dlhodobého majetku",
+            ]);
+          }
         }
-        if (profit === null) {
-          profit = findValue(tabulka, templateTabulka, [
-            "Výsledok hospodárenia za účtovné obdobie po zdanení",
-            "Výsledok hospodárenia za účtovné obdobie",
-          ]);
-        }
-        if (assets === null) {
-          assets = findValue(tabulka, templateTabulka, ["Spolu majetok", "SPOLU MAJETOK"], 0);
-        }
-        if (equity === null) {
-          equity = findValue(tabulka, templateTabulka, ["Vlastné imanie"], 0);
-        }
-        if (liabilities === null) {
-          liabilities = findValue(tabulka, templateTabulka, ["Záväzky spolu", "Záväzky súčet", "Záväzky r."], 0);
+        if (balance) {
+          if (assets === null) {
+            assets = findValue(tabulka, templateTabulka, ["Spolu majetok", "SPOLU MAJETOK"], true);
+          }
+          if (equity === null) {
+            equity = findValue(tabulka, templateTabulka, ["Vlastné imanie"], true);
+          }
+          if (liabilities === null) {
+            liabilities = findValue(tabulka, templateTabulka, ["Záväzky spolu", "Záväzky súčet", "Záväzky r."], true);
+          }
+          if (financialDebt === null) {
+            financialDebt = findValueSum(
+              tabulka,
+              templateTabulka,
+              ["Bankové úvery", "Krátkodobé finančné výpomoci", "Bežné bankové úvery"],
+              true
+            );
+          }
         }
       }
     }
 
-    if (revenue === null && profit === null && assets === null) return null;
+    // EBITDA = prevádzkový (hospodársky) výsledok + odpisy — štandardný vzorec.
+    // Ak niektorá zložka chýba, necháme null a appka použije záložný odhad z čistého zisku.
+    const ebitda = operatingProfit != null && depreciation != null ? operatingProfit + depreciation : null;
+
+    return { revenue, profit, ebitda, assets, equity, liabilities, financialDebt };
+  };
+
+  // klasifikácia trendu podľa priemerného medziročného rastu (CAGR) tržieb
+  const classifyGrowthTrend = (cagr) => {
+    if (cagr < -0.05) return "declining";
+    if (cagr < 0.03) return "stable";
+    if (cagr < 0.15) return "growing";
+    return "rapid";
+  };
+
+  try {
+    const jList = await getJson(`${base}/uctovne-jednotky?zmenene-od=2000-01-01&max-zaznamov=5&ico=${cleanIco}`);
+    const ujId = jList?.id?.[0];
+    if (!ujId) return null;
+
+    const uj = await getJson(`${base}/uctovna-jednotka?id=${ujId}`);
+    const closureIds = uj?.idUctovnychZavierok || [];
+    if (closureIds.length === 0) return null;
+
+    // skontrolovať posledných pár závierok (podľa id) a zoradiť podľa reálneho obdobia
+    const candidateIds = closureIds.slice(-8);
+    const closures = (
+      await Promise.all(candidateIds.map((id) => getJson(`${base}/uctovna-zavierka?id=${id}`)))
+    ).filter((c) => c && c.obdobieDo);
+    if (closures.length === 0) return null;
+    closures.sort((a, b) => (a.obdobieDo < b.obdobieDo ? 1 : -1));
+
+    // posledné (max) 3 roky použijeme na výpočet reálneho trendu tržieb
+    const recentClosures = closures.slice(0, 3);
+    const templateCache = {};
+
+    const yearlyData = [];
+    for (let i = 0; i < recentClosures.length; i++) {
+      const extracted = await extractFromClosure(recentClosures[i], templateCache, {
+        income: true,
+        balance: i === 0, // súvahové položky (aktíva, imanie, dlh) len z najnovšieho roka
+      });
+      if (extracted) yearlyData.push({ obdobie: recentClosures[i].obdobieDo, ...extracted });
+    }
+
+    if (yearlyData.length === 0) return null;
+    const latestData = yearlyData[0];
+
+    // priemerovanie zisku a EBITDA za dostupné roky (max. 3) — vyhladí to
+    // jednorazové výkyvy, ktoré by inak jeden mimoriadny rok mohol spôsobiť
+    const avg = (arr) => {
+      const vals = arr.filter((v) => v != null);
+      return vals.length > 0 ? vals.reduce((s, v) => s + v, 0) / vals.length : null;
+    };
+    const avgProfit = avg(yearlyData.map((y) => y.profit));
+    const avgEbitda = avg(yearlyData.map((y) => y.ebitda));
+
+    // trend tržieb z reálnych viacročných dát (ak máme aspoň 2 roky s tržbami)
+    let growthTrend = null;
+    let revenueHistory = null;
+    const revenuesWithYears = yearlyData.filter((y) => y.revenue != null);
+    if (revenuesWithYears.length >= 2) {
+      const newest = revenuesWithYears[0];
+      const oldest = revenuesWithYears[revenuesWithYears.length - 1];
+      const yearsSpan = Math.max(
+        1,
+        new Date(newest.obdobie).getFullYear() - new Date(oldest.obdobie).getFullYear()
+      );
+      if (oldest.revenue > 0) {
+        const cagr = Math.pow(newest.revenue / oldest.revenue, 1 / yearsSpan) - 1;
+        growthTrend = classifyGrowthTrend(cagr);
+        revenueHistory = revenuesWithYears.map((y) => ({ obdobie: y.obdobie, revenue: y.revenue })).reverse();
+      }
+    }
+
+    if (latestData.revenue === null && avgProfit === null && latestData.assets === null) return null;
+
+    // Roky pôsobenia na trhu — prednostne z presného dátumu založenia firmy
+    // (pole "datumZalozenia" priamo z RegisterUZ). Ak by chýbalo (staršie/
+    // neúplné záznamy), záložne dolný odhad z najstaršej dostupnej závierky.
+    let yearsInBusiness = null;
+    let yearsInBusinessIsExact = false;
+    if (uj?.datumZalozenia) {
+      const foundedYear = new Date(uj.datumZalozenia).getFullYear();
+      const currentYear = new Date().getFullYear();
+      if (!isNaN(foundedYear)) {
+        yearsInBusiness = Math.max(0, currentYear - foundedYear);
+        yearsInBusinessIsExact = true;
+      }
+    }
+    if (yearsInBusiness === null) {
+      try {
+        const earliestId = closureIds[0];
+        const earliestClosure = await getJson(`${base}/uctovna-zavierka?id=${earliestId}`);
+        if (earliestClosure?.obdobieOd) {
+          const earliestYear = new Date(earliestClosure.obdobieOd).getFullYear();
+          const currentYear = new Date().getFullYear();
+          if (!isNaN(earliestYear)) yearsInBusiness = Math.max(0, currentYear - earliestYear);
+        }
+      } catch (_) {
+        yearsInBusiness = null;
+      }
+    }
+
+    // Finančný dlh = bankové úvery a výpomoci (nie všetky záväzky!). Ak sa
+    // nepodarilo vyčítať konkrétny riadok, záložne použijeme aktíva − vlastné
+    // imanie (t.j. všetky záväzky) — menej presné, ale lepšie než nič.
+    const financialDebt =
+      latestData.financialDebt != null
+        ? latestData.financialDebt
+        : latestData.assets != null && latestData.equity != null
+        ? Math.max(0, latestData.assets - latestData.equity)
+        : null;
 
     return {
       ico: cleanIco,
       nazovUJ: uj?.nazovUJ || null,
       skNace: uj?.skNace || null,
       kraj: uj?.kraj || null,
-      obdobie: latest.obdobieDo || null,
-      annualRevenue: revenue,
-      netProfit: profit,
-      totalAssets: assets,
-      equity: equity,
-      liabilities: liabilities,
+      obdobie: recentClosures[0]?.obdobieDo || null,
+      yearsInBusiness,
+      yearsInBusinessIsExact,
+      annualRevenue: latestData.revenue,
+      netProfit: avgProfit ?? latestData.profit,
+      ebitda: avgEbitda,
+      ebitdaIsReal: avgEbitda != null,
+      totalAssets: latestData.assets,
+      equity: latestData.equity,
+      liabilities: latestData.liabilities,
+      financialDebt,
+      financialDebtIsReal: latestData.financialDebt != null,
+      growthTrend, // null, ak sa nedalo spoľahlivo určiť (appka potom použije odhad)
+      revenueHistory, // pole {obdobie, revenue} pre transparentné zobrazenie, najstarší rok prvý
     };
   } catch (_) {
     return null;
@@ -1110,10 +1523,12 @@ async function fetchRegisterUzData(ico) {
 }
 
 async function resolveValuationInputs(profile) {
-  // 1) Skontrolovať, či poradca zadal reálne dáta cez skrytý admin panel
+  // 1) Skontrolovať, či poradca zadal reálne dáta cez skrytý admin panel —
+  // kľúčované podľa konkrétnej firmy (IČO, alebo názov+krajina), aby sa dáta
+  // jednej firmy nikdy neuplatnili pri inej.
   let manual = null;
   try {
-    const res = await storage.get("manualFinancials");
+    const res = await storage.get(`manualFinancials:${companyKey(profile)}`);
     manual = res ? JSON.parse(res.value) : null;
   } catch (_) {
     manual = null;
@@ -1125,7 +1540,7 @@ async function resolveValuationInputs(profile) {
     ruz = await fetchRegisterUzData(profile.ico);
   }
 
-  const h = hashString((profile?.companyName || "") + (profile?.country || "") + (profile?.city || ""));
+  const h = hashString((profile?.companyName || "") + (profile?.country || "") + (profile?.region || ""));
   const cd = COUNTRY_FINANCE_DEFAULTS[profile?.country] || COUNTRY_FINANCE_DEFAULTS["Iná krajina"];
 
   // 3) Reálny kurz meny naživo z ECB (Frankfurter API), so zálohou na statickú tabuľku
@@ -1138,6 +1553,12 @@ async function resolveValuationInputs(profile) {
   // pôvodná orientačná hodnota z tabuľky bez úpravy.
   const macro = profile?.country ? await fetchCountryMacroData(profile.country) : null;
 
+  // 3b-2) Výnosy štátnych dlhopisov (Eurostat) — živý trhový proxy namiesto
+  // kreditného ratingu. Nemecký výnos = risk-free rate, rozdiel oproti nemu
+  // = trhovo odvodená Country Risk Premium. Ak zlyhá, použije sa statická
+  // orientačná tabuľka ako záloha.
+  const marketRisk = profile?.country ? await fetchMarketRiskData(profile.country) : null;
+
   // 3c) Ak ide o slovenskú firmu s krajom známym z RegisterUZ, skúsiť
   // presnejšiu regionálnu (NUTS2) nezamestnanosť namiesto celoštátnej.
   let regional = null;
@@ -1146,13 +1567,15 @@ async function resolveValuationInputs(profile) {
   }
   const effectiveUnemployment = regional?.unemployment ?? macro?.unemployment ?? null;
 
-  let countryRiskPremium = cd.countryRiskPremium;
+  const riskFreeRate = marketRisk?.riskFreeRate ?? 3.5;
+  let countryRiskPremium =
+    marketRisk?.marketCountryRiskPremium != null ? marketRisk.marketCountryRiskPremium : cd.countryRiskPremium;
   if (macro || regional) {
     let macroAdj = 0;
     if (effectiveUnemployment != null) macroAdj += Math.max(0, effectiveUnemployment - 5) * 0.1;
     if (macro?.inflation != null) macroAdj += Math.max(0, macro.inflation - 2) * 0.15;
     macroAdj = Math.min(macroAdj, 2.5); // strop, aby prirážka nevystrelila nezmyselne vysoko
-    countryRiskPremium = cd.countryRiskPremium + macroAdj;
+    countryRiskPremium += macroAdj;
   }
 
   // 4) Placeholder pre to, k čomu nemáme reálny zdroj a čo nebolo zadané ručne ani nájdené v RegisterUZ
@@ -1171,14 +1594,12 @@ async function resolveValuationInputs(profile) {
   // Priorita pre každé pole zvlášť: ručný vstup poradcu > RegisterUZ > placeholder
   const resolvedRevenue = manual?.annualRevenue ? Number(manual.annualRevenue) : ruz?.annualRevenue ?? revenue;
   const netProfit = manual?.netProfit ? Number(manual.netProfit) : ruz?.netProfit ?? placeholderNetProfit;
-  const ebitda = manual?.ebitda ? Number(manual.ebitda) : placeholderEbitda; // RegisterUZ neobsahuje priamo EBITDA
+  const ebitda = manual?.ebitda ? Number(manual.ebitda) : ruz?.ebitda ?? placeholderEbitda;
   const equity = manual?.equity ? Number(manual.equity) : ruz?.equity ?? placeholderEquity;
-  const debt = manual?.debt
-    ? Number(manual.debt)
-    : ruz?.totalAssets != null && ruz?.equity != null
-    ? Math.max(0, ruz.totalAssets - ruz.equity)
-    : placeholderDebt;
-  const years = manual?.yearsInBusiness ? Number(manual.yearsInBusiness) : placeholderYears;
+  const debt = manual?.debt ? Number(manual.debt) : ruz?.financialDebt ?? placeholderDebt;
+  const years = manual?.yearsInBusiness
+    ? Number(manual.yearsInBusiness)
+    : ruz?.yearsInBusiness ?? placeholderYears;
 
   const inputs = {
     industry: manual?.industry || mapNaceToIndustry(ruz?.skNace) || "other",
@@ -1186,7 +1607,7 @@ async function resolveValuationInputs(profile) {
     annualRevenue: String(resolvedRevenue),
     ebitda: String(ebitda),
     netProfit: String(netProfit),
-    growthTrend: manual?.growthTrend || growthOptions[(h >> 2) % growthOptions.length],
+    growthTrend: manual?.growthTrend || ruz?.growthTrend || growthOptions[(h >> 2) % growthOptions.length],
     ownerDependency: manual?.ownerDependency || dependencyOptions[(h >> 4) % dependencyOptions.length],
     customerConcentration: manual?.customerConcentration || concentrationOptions[(h >> 5) % concentrationOptions.length],
     equity: String(equity),
@@ -1196,7 +1617,7 @@ async function resolveValuationInputs(profile) {
     debtToEquity: String(Math.round((debt / Math.max(equity, 1)) * 100)),
     debt: String(debt),
     creditSpread: "3.0",
-    riskFreeRate: "3.5",
+    riskFreeRate: riskFreeRate.toFixed(2),
     marketRiskPremium: "5.5",
     countryRiskPremium: countryRiskPremium.toFixed(2),
     inflationDifferential: "0",
@@ -1205,7 +1626,7 @@ async function resolveValuationInputs(profile) {
     exchangeRate: String(exchangeRate),
   };
   const dataSource = manual ? "manual" : ruz ? "registeruz" : "placeholder";
-  return { inputs, advanced, usedManualData: !!manual, dataSource, ruzInfo: ruz, macro, regional };
+  return { inputs, advanced, usedManualData: !!manual, dataSource, ruzInfo: ruz, macro, regional, marketRisk };
 }
 
 /* ============================================================
@@ -1233,34 +1654,42 @@ function AdminOverridePanel({ onClose }) {
   });
   const [savedMsg, setSavedMsg] = useState("");
   const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
-      try {
-        const res = await storage.get("manualFinancials");
-        if (res) setData((s) => ({ ...s, ...JSON.parse(res.value) }));
-      } catch (_) {}
+      let loadedProfile = null;
       try {
         const p = await storage.get("profile");
-        if (p) setProfile(JSON.parse(p.value));
+        loadedProfile = p ? JSON.parse(p.value) : null;
+        setProfile(loadedProfile);
       } catch (_) {}
+      if (loadedProfile) {
+        try {
+          const res = await storage.get(`manualFinancials:${companyKey(loadedProfile)}`);
+          if (res) setData((s) => ({ ...s, ...JSON.parse(res.value) }));
+        } catch (_) {}
+      }
+      setLoading(false);
     })();
   }, []);
 
   const upd = (k) => (v) => setData((s) => ({ ...s, [k]: v }));
 
   const handleSave = async () => {
+    if (!profile) return;
     try {
-      await storage.set("manualFinancials", JSON.stringify(data));
-      setSavedMsg("Uložené. Použije sa pri ďalšom výpočte.");
+      await storage.set(`manualFinancials:${companyKey(profile)}`, JSON.stringify(data));
+      setSavedMsg("Uložené pre túto firmu. Použije sa pri jej ďalšom výpočte.");
     } catch (_) {
       setSavedMsg("Nepodarilo sa uložiť.");
     }
   };
 
   const handleClear = async () => {
+    if (!profile) return;
     try {
-      await storage.delete("manualFinancials");
+      await storage.delete(`manualFinancials:${companyKey(profile)}`);
     } catch (_) {}
     setData({
       industry: "other",
@@ -1274,7 +1703,7 @@ function AdminOverridePanel({ onClose }) {
       ownerDependency: "medium",
       customerConcentration: "moderate",
     });
-    setSavedMsg("Vymazané — appka sa vráti k automatickému odhadu.");
+    setSavedMsg("Vymazané pre túto firmu — appka sa pre ňu vráti k automatickému odhadu.");
   };
 
   return (
@@ -1294,14 +1723,32 @@ function AdminOverridePanel({ onClose }) {
       <p style={{ color: COLORS.inkSoft, fontSize: 13.5, marginBottom: 20 }}>
         Sem zadaj skutočné (alebo čo najpresnejšie odhadnuté) finančné údaje firmy pred stretnutím. Prázdne polia sa
         doplnia automatickým odhadom. Toto okno sa zobrazí len pri návšteve adresy s <code>#admin</code> na konci.
+        Údaje sa ukladajú <strong>osobitne pre každú firmu</strong> (podľa IČO), takže sa nikdy nepomiešajú.
       </p>
+
+      {!loading && !profile && (
+        <div
+          style={{
+            background: "rgba(225,90,80,0.08)",
+            border: `1px solid ${COLORS.red}`,
+            borderRadius: 12,
+            padding: 14,
+            marginBottom: 18,
+            fontSize: 13,
+            color: COLORS.ink,
+          }}
+        >
+          Zatiaľ nie je uložený žiadny firemný profil. Najprv prejdi celým wizardom (4 kroky) pre konkrétnu firmu — až
+          potom sa sem vráť a zadaj jej reálne údaje. Bez toho appka nevie, ku ktorej firme má tieto dáta priradiť.
+        </div>
+      )}
 
       {profile?.companyName && (
         <div
           style={{
             background: "#fff",
             border: `1px solid ${COLORS.line}`,
-            borderRadius: 4,
+            borderRadius: 12,
             padding: 14,
             marginBottom: 18,
           }}
@@ -1312,7 +1759,7 @@ function AdminOverridePanel({ onClose }) {
           </div>
           <div style={{ fontSize: 12.5, color: COLORS.inkSoft }}>
             {profile.country}
-            {profile.city ? `, ${profile.city}` : ""}
+            {profile.region ? `, ${profile.region}` : ""}
           </div>
           {profile.ico && profile.country === "Slovensko" && (
             <a
@@ -1350,7 +1797,7 @@ function AdminOverridePanel({ onClose }) {
         <SelectInput label="Koncentrácia zákazníkov" value={data.customerConcentration} onChange={upd("customerConcentration")} options={CONCENTRATION_OPTIONS} />
 
         {savedMsg && (
-          <div style={{ fontSize: 13, color: COLORS.teal, background: "rgba(31,111,92,0.08)", padding: "8px 10px", borderRadius: 3, marginBottom: 12 }}>
+          <div style={{ fontSize: 13, color: COLORS.teal, background: "rgba(14,163,126,0.08)", padding: "8px 10px", borderRadius: 10, marginBottom: 12 }}>
             {savedMsg}
           </div>
         )}
@@ -1358,13 +1805,34 @@ function AdminOverridePanel({ onClose }) {
         <div style={{ display: "flex", gap: 10 }}>
           <button
             onClick={handleSave}
-            style={{ flex: 1, padding: "11px 0", borderRadius: 3, border: "none", background: COLORS.ink, color: COLORS.paper, fontWeight: 700, fontSize: 13.5, cursor: "pointer" }}
+            disabled={!profile}
+            style={{
+              flex: 1,
+              padding: "11px 0",
+              borderRadius: 10,
+              border: "none",
+              background: profile ? COLORS.ink : COLORS.line,
+              color: profile ? COLORS.paper : COLORS.inkSoft,
+              fontWeight: 700,
+              fontSize: 13.5,
+              cursor: profile ? "pointer" : "not-allowed",
+            }}
           >
             Uložiť
           </button>
           <button
             onClick={handleClear}
-            style={{ padding: "11px 16px", borderRadius: 3, border: `1px solid ${COLORS.line}`, background: "#fff", color: COLORS.ink, fontWeight: 600, fontSize: 13.5, cursor: "pointer" }}
+            disabled={!profile}
+            style={{
+              padding: "11px 16px",
+              borderRadius: 10,
+              border: `1px solid ${COLORS.line}`,
+              background: "#fff",
+              color: profile ? COLORS.ink : COLORS.line,
+              fontWeight: 600,
+              fontSize: 13.5,
+              cursor: profile ? "pointer" : "not-allowed",
+            }}
           >
             Vymazať
           </button>
@@ -1389,7 +1857,13 @@ export default function App() {
   );
 
   useEffect(() => {
-    const onHashChange = () => setIsAdminRoute(window.location.hash === "#admin");
+    const onHashChange = () => {
+      const nowAdmin = window.location.hash === "#admin";
+      setIsAdminRoute((wasAdmin) => {
+        if (wasAdmin && !nowAdmin) setDataRefreshKey((k) => k + 1); // vynúti prepočet po návrate z admin panela
+        return nowAdmin;
+      });
+    };
     window.addEventListener("hashchange", onHashChange);
     return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
@@ -1425,6 +1899,17 @@ export default function App() {
   const [profile, setProfile] = useState(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [editingProfile, setEditingProfile] = useState(false);
+
+  const handleGoHome = async () => {
+    setProfile(null);
+    setResult(null);
+    setSaved(false);
+    setEditingProfile(false);
+    setShowMethodology(false);
+    try {
+      await storage.delete("profile");
+    } catch (_) {}
+  };
   const resultsRef = useRef(null);
 
   useEffect(() => {
@@ -1457,9 +1942,12 @@ export default function App() {
   };
 
   const [computing, setComputing] = useState(false);
+  const [dataRefreshKey, setDataRefreshKey] = useState(0);
 
   // Automatický výpočet na pozadí — spustí sa hneď, ako je firemný profil
-  // hotový. Používateľ nemá prístup k vstupným parametrom ani k tomuto kódu;
+  // hotový, a tiež po každom návrate zo skrytého admin panela (dataRefreshKey),
+  // aby sa prípadné novo uložené ručné dáta hneď premietli do výsledku.
+  // Používateľ nemá prístup k vstupným parametrom ani k tomuto kódu;
   // dáta pre výpočet dodáva výhradne resolveValuationInputs (pozri vyššie).
   useEffect(() => {
     if (!profile || editingProfile) return;
@@ -1475,6 +1963,7 @@ export default function App() {
         ruzInfo,
         macro,
         regional,
+        marketRisk,
       } = await resolveValuationInputs(profile);
       if (cancelled) return;
 
@@ -1486,11 +1975,13 @@ export default function App() {
       const capm = resolvedAdvanced.enabled ? computeCapmWacc(resolvedAdvanced) : null;
       const baseCapRateOverridePct = capm ? capm.wacc * 100 : null;
       const debtAmount = resolvedAdvanced.enabled ? Number(resolvedAdvanced.debt) || 0 : 0;
+      const dataConfidence = computeDataConfidence({ dataSource, ruzInfo, marketRisk });
 
       const calc = calculateValuation(
         { ...resolvedInputs, ebitda: effEbitda, netProfit: effNetProfit },
         baseCapRateOverridePct,
-        debtAmount
+        debtAmount,
+        dataConfidence
       );
       calc.capm = capm;
       calc.usedManualData = usedManualData;
@@ -1498,6 +1989,7 @@ export default function App() {
       calc.ruzInfo = ruzInfo;
       calc.macro = macro;
       calc.regional = regional;
+      calc.marketRisk = marketRisk;
 
       setInputs(resolvedInputs);
       setAdvanced(resolvedAdvanced);
@@ -1510,12 +2002,14 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, [profile, editingProfile]);
+  }, [profile, editingProfile, dataRefreshKey]);
 
   const handleSave = async () => {
     if (!result) return;
     const entry = {
       ts: Date.now(),
+      companyName: profile?.companyName || "Neznáma firma",
+      ico: profile?.ico || null,
       industry: INDUSTRIES[inputs.industry].label,
       rangeLow: result.unleveredLow,
       rangeHigh: result.unleveredHigh,
@@ -1542,7 +2036,7 @@ export default function App() {
     return (
       <div style={{ minHeight: "100%", width: "100%", background: COLORS.paper, fontFamily: "'IBM Plex Sans', sans-serif" }}>
         <style>{FONT_IMPORT}</style>
-        <AdminOverridePanel onClose={() => { window.location.hash = ""; setIsAdminRoute(false); }} />
+        <AdminOverridePanel onClose={() => { window.location.hash = ""; setIsAdminRoute(false); setDataRefreshKey((k) => k + 1); }} />
       </div>
     );
   }
@@ -1562,7 +2056,7 @@ export default function App() {
       `}</style>
 
       {/* HEADER */}
-      <div className="no-print" style={{ background: COLORS.ink, color: COLORS.paper, padding: "16px 20px", boxShadow: "0 4px 16px rgba(23,35,59,0.18)", position: "relative", zIndex: 2 }}>
+      <div className="no-print" style={{ background: COLORS.ink, color: COLORS.paper, padding: "16px 20px", boxShadow: "0 4px 16px rgba(24,36,73,0.18)", position: "relative", zIndex: 2 }}>
         <div style={{ maxWidth: 1080, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <GaugeIcon size={20} color={COLORS.brass} />
@@ -1576,7 +2070,7 @@ export default function App() {
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             {profile && !editingProfile && (
               <button
-                onClick={() => setEditingProfile(true)}
+                onClick={handleGoHome}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -1584,13 +2078,13 @@ export default function App() {
                   background: "transparent",
                   border: `1px solid rgba(255,255,255,0.25)`,
                   color: COLORS.paper,
-                  borderRadius: 3,
-                  padding: "7px 12px",
+                  borderRadius: 999,
+                  padding: "7px 14px",
                   fontSize: 12.5,
                   cursor: "pointer",
                 }}
               >
-                <Pencil size={13} /> Upraviť profil
+                <Home size={13} /> Späť na úvod
               </button>
             )}
           </div>
@@ -1632,15 +2126,42 @@ export default function App() {
                       </div>
                       <div style={{ fontSize: 13, color: COLORS.inkSoft, marginTop: 4 }}>
                         {profile?.companyName}
-                        {profile?.city ? ` · ${profile.city}, ${profile.country}` : profile?.country ? ` · ${profile.country}` : ""}
+                        {profile?.region ? ` · ${profile.region}, ${profile.country}` : profile?.country ? ` · ${profile.country}` : ""}
                       </div>
                       <div style={{ fontSize: 11.5, color: COLORS.inkSoft, marginTop: 2, fontFamily: "'IBM Plex Mono', monospace" }}>
                         Vygenerované {new Date().toLocaleDateString("sk-SK")} · nástroj Hodnotomer
                       </div>
                     </div>
 
-                    <SectionEyebrow>Súhrn ocenenia</SectionEyebrow>
-                    <div style={{ fontSize: 13, color: COLORS.inkSoft, marginTop: -6, marginBottom: 10 }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
+                      <SectionEyebrow>Súhrn ocenenia</SectionEyebrow>
+                      {(() => {
+                        const c = result.dataConfidence ?? 0;
+                        const badge =
+                          c >= 0.7
+                            ? { text: "Vysoká spoľahlivosť dát", bg: "rgba(14,163,126,0.12)", fg: COLORS.tealDeep }
+                            : c >= 0.35
+                            ? { text: "Čiastočne reálne dáta", bg: "rgba(217,164,65,0.15)", fg: COLORS.brassDeep }
+                            : { text: "Orientačný odhad", bg: COLORS.paperDeep, fg: COLORS.inkSoft };
+                        return (
+                          <span
+                            style={{
+                              fontSize: 11,
+                              fontWeight: 600,
+                              padding: "4px 10px",
+                              borderRadius: 999,
+                              background: badge.bg,
+                              color: badge.fg,
+                              letterSpacing: "0.02em",
+                              marginBottom: -4,
+                            }}
+                          >
+                            {badge.text}
+                          </span>
+                        );
+                      })()}
+                    </div>
+                    <div style={{ fontSize: 13, color: COLORS.inkSoft, marginTop: 4, marginBottom: 10 }}>
                       {result.debt > 0 ? "Hodnota podniku (Unlevered / Enterprise Value)" : "Indikatívna trhová hodnota"}
                     </div>
                     <ValueGauge low={result.unleveredLow} high={result.unleveredHigh} mid={result.unleveredMid} />
@@ -1667,7 +2188,7 @@ export default function App() {
                           color: "#fff",
                           borderRadius: 6,
                           padding: "14px 16px",
-                          boxShadow: "0 8px 20px -8px rgba(21,79,66,0.45)",
+                          boxShadow: "0 8px 20px -8px rgba(10,122,95,0.45)",
                         }}
                       >
                         <div style={{ fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase", opacity: 0.85, marginBottom: 4 }}>
@@ -1689,7 +2210,7 @@ export default function App() {
                           fontSize: 12.5,
                           color: COLORS.inkSoft,
                           background: COLORS.paperDeep,
-                          borderRadius: 3,
+                          borderRadius: 10,
                           padding: "8px 10px",
                           display: "flex",
                           gap: 6,
@@ -1714,8 +2235,8 @@ export default function App() {
                         onClick={handleSave}
                         style={{
                           flex: 1,
-                          padding: "10px 0",
-                          borderRadius: 3,
+                          padding: "11px 0",
+                          borderRadius: 999,
                           border: `1px solid ${COLORS.ink}`,
                           background: saved ? COLORS.ink : "transparent",
                           color: saved ? COLORS.paper : COLORS.ink,
@@ -1726,6 +2247,7 @@ export default function App() {
                           alignItems: "center",
                           justifyContent: "center",
                           gap: 6,
+                          transition: "background 150ms ease, color 150ms ease",
                         }}
                       >
                         <Save size={14} /> {saved ? "Uložené" : "Uložiť odhad"}
@@ -1734,8 +2256,8 @@ export default function App() {
                         onClick={() => window.print()}
                         style={{
                           flex: 1,
-                          padding: "10px 0",
-                          borderRadius: 3,
+                          padding: "11px 0",
+                          borderRadius: 999,
                           border: `1px solid ${COLORS.brassDeep}`,
                           background: "transparent",
                           color: COLORS.brassDeep,
@@ -1746,6 +2268,7 @@ export default function App() {
                           alignItems: "center",
                           justifyContent: "center",
                           gap: 6,
+                          transition: "background 150ms ease",
                         }}
                       >
                         <Download size={14} /> Stiahnuť ako PDF
@@ -1794,6 +2317,16 @@ export default function App() {
                       totiž zachytáva trhové riziko, nie riziko konkrétnej malej firmy.
                       {result ? ` Aktuálna výsledná miera: ${result.capRateMid.toFixed(1)}%.` : ""}
                     </p>
+                    {result && (
+                      <p style={{ margin: "0 0 10px" }}>
+                        <strong style={{ color: COLORS.ink }}>Šírka rozpätia</strong> okolo tejto miery aj okolo
+                        odvetvového násobku nie je pevná — zužuje sa podľa toho, koľko vstupov je reálnych (nie
+                        odhadovaných). Momentálne: {(result.dataConfidence * 100).toFixed(0)} % spoľahlivosť dát →
+                        pásmo kapitalizačnej miery ±{result.capRateBand.toFixed(1)} p.b. (pri čisto odhadovaných
+                        dátach by bolo ±6 p.b., pri kompletne reálnych dátach ±2 p.b.). Rovnaký princíp zužuje aj
+                        rozsah odvetvového násobku EBITDA.
+                      </p>
+                    )}
                     {result?.capm && (
                       <>
                         <p style={{ margin: "0 0 6px" }}>
@@ -1807,7 +2340,7 @@ export default function App() {
                             fontFamily: "'IBM Plex Mono', monospace",
                             fontSize: 12,
                             background: COLORS.paperDeep,
-                            borderRadius: 3,
+                            borderRadius: 10,
                             padding: "8px 10px",
                             marginBottom: 10,
                           }}
@@ -1816,6 +2349,21 @@ export default function App() {
                           (po dani) {(result.capm.costOfDebtAfterTax * 100).toFixed(2)}% · váha VK/CK{" "}
                           {(result.capm.weightEquity * 100).toFixed(0)}% / {(result.capm.weightDebt * 100).toFixed(0)}%
                         </div>
+                        {result.marketRisk?.marketCountryRiskPremium != null ? (
+                          <p style={{ margin: "0 0 10px", fontSize: 12.5 }}>
+                            <strong style={{ color: COLORS.ink }}>Risk-free rate a Country Risk Premium sú trhovo
+                            odvodené</strong> z výnosov 10-ročných štátnych dlhopisov (Eurostat): Nemecko{" "}
+                            {result.marketRisk.riskFreeRate.toFixed(2)}% (= risk-free rate), {profile?.country}{" "}
+                            {result.marketRisk.countryYield?.toFixed(2)}% → spread (Country Risk Premium základ){" "}
+                            {result.marketRisk.marketCountryRiskPremium.toFixed(2)} p.b. Toto je živý trhový proxy
+                            namiesto kreditného ratingu (ten voľné API nemá).
+                          </p>
+                        ) : (
+                          <p style={{ margin: "0 0 10px", fontSize: 12.5 }}>
+                            Výnosy štátnych dlhopisov sa nepodarilo stiahnuť, preto sa risk-free rate (3,5 %) a základná
+                            Country Risk Premium použili zo statickej orientačnej tabuľky.
+                          </p>
+                        )}
                         {profile?.country && (
                           <p style={{ margin: "0 0 6px", fontSize: 12.5 }}>
                             <strong style={{ color: COLORS.ink }}>Krajina:</strong> {profile.country} · daň z príjmu
@@ -1853,10 +2401,45 @@ export default function App() {
                             result.ruzInfo?.skNace
                               ? ` Odvetvie bolo automaticky určené podľa SK NACE kódu firmy (${result.ruzInfo.skNace}).`
                               : ""
-                          } EBITDA a niektoré rizikové faktory sú naďalej odhadované.`}
+                          }${
+                            result.ruzInfo?.growthTrend
+                              ? " Trend tržieb je vypočítaný z reálnych viacročných dát (nie odhad)."
+                              : " Trend tržieb nebolo možné spoľahlivo určiť z dostupných rokov, preto je odhadovaný."
+                          }${
+                            result.ruzInfo?.yearsInBusiness != null
+                              ? result.ruzInfo.yearsInBusinessIsExact
+                                ? ` Roky pôsobenia (${result.ruzInfo.yearsInBusiness}) sú vypočítané z presného dátumu založenia firmy v registri.`
+                                : ` Roky pôsobenia (${result.ruzInfo.yearsInBusiness}) sú odvodené z najstaršej dostupnej závierky v registri — ide o dolný odhad, firma môže reálne existovať aj dlhšie.`
+                              : ""
+                          }${
+                            result.ruzInfo?.ebitdaIsReal
+                              ? " EBITDA je vypočítaná z reálnych dát registra (prevádzkový výsledok + odpisy)."
+                              : " EBITDA sa nepodarilo vyčítať priamo z registra, preto je odhadovaná z čistého zisku."
+                          }${
+                            result.ruzInfo?.financialDebtIsReal
+                              ? " Dlh zohľadňuje len bankové úvery a výpomoci (nie všetky záväzky voči dodávateľom a pod.)."
+                              : " Presný riadok bankových úverov sa nenašiel, preto dlh zástupne odhaduje všetky záväzky firmy — to môže hodnotu pre vlastníka mierne podhodnotiť."
+                          } Čistý zisk aj EBITDA sú priemerom za dostupné posledné roky (nie len posledný rok), aby jeden mimoriadny rok neskreslil výsledok.`}
                         {result.dataSource === "placeholder" &&
                           "Finančné údaje zatiaľ nemajú pripojený reálny zdroj (firma nie je zo Slovenska, nemá vyplnené IČO, alebo sa nenašla v RegisterUZ), preto ich appka odhaduje zástupne — do systému ich vie poradca vopred vložiť cez skrytý panel."}
                       </p>
+                    )}
+                    {result?.ruzInfo?.revenueHistory && result.ruzInfo.revenueHistory.length >= 2 && (
+                      <div
+                        style={{
+                          fontFamily: "'IBM Plex Mono', monospace",
+                          fontSize: 12,
+                          background: COLORS.paperDeep,
+                          borderRadius: 10,
+                          padding: "8px 10px",
+                          marginBottom: 10,
+                        }}
+                      >
+                        História tržieb:{" "}
+                        {result.ruzInfo.revenueHistory
+                          .map((y) => `${new Date(y.obdobie).getFullYear()}: ${formatCompactEUR(y.revenue)}`)
+                          .join("  →  ")}
+                      </div>
                     )}
                     {result?.debt > 0 && (
                       <p style={{ margin: "0 0 10px" }}>
@@ -1900,7 +2483,12 @@ export default function App() {
                       }}
                     >
                       <div>
-                        <div style={{ color: COLORS.ink, fontWeight: 600 }}>{h.industry}</div>
+                        <div style={{ color: COLORS.ink, fontWeight: 600 }}>
+                          {h.companyName || h.industry}
+                        </div>
+                        <div style={{ color: COLORS.inkSoft, fontSize: 11 }}>
+                          {h.companyName ? h.industry : ""}
+                        </div>
                         <div style={{ color: COLORS.inkSoft, fontFamily: "'IBM Plex Mono', monospace" }}>
                           {formatEUR(h.midpoint)} · {new Date(h.ts).toLocaleDateString("sk-SK")}
                         </div>
@@ -1939,12 +2527,13 @@ function Card({ children, accent = false }) {
         background: "#fff",
         border: `1px solid ${COLORS.line}`,
         borderTop: accent ? `3px solid ${COLORS.brass}` : `1px solid ${COLORS.line}`,
-        borderRadius: 6,
-        padding: 22,
+        borderRadius: 18,
+        padding: 24,
         marginBottom: 18,
+        transition: "box-shadow 200ms ease, transform 200ms ease",
         boxShadow: accent
-          ? "0 12px 28px -12px rgba(23,35,59,0.18), 0 2px 6px -1px rgba(23,35,59,0.06)"
-          : "0 1px 3px rgba(23,35,59,0.05)",
+          ? "0 20px 40px -16px rgba(24,36,73,0.20), 0 2px 8px -2px rgba(24,36,73,0.06)"
+          : "0 1px 3px rgba(24,36,73,0.05)",
       }}
     >
       {children}
@@ -1984,7 +2573,7 @@ function Toggle({ checked }) {
 
 function MiniStat({ label, value }) {
   return (
-    <div style={{ flex: 1, background: COLORS.paperDeep, borderRadius: 5, padding: "12px 14px", border: `1px solid ${COLORS.line}` }}>
+    <div style={{ flex: 1, background: COLORS.paperDeep, borderRadius: 10, padding: "12px 14px", border: `1px solid ${COLORS.line}` }}>
       <div style={{ fontSize: 11, color: COLORS.inkSoft, marginBottom: 5, letterSpacing: "0.02em" }}>{label}</div>
       <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 13, color: COLORS.ink, fontWeight: 600 }}>{value}</div>
     </div>
